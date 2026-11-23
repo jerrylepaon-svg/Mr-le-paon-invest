@@ -113,3 +113,15 @@ console.log('TÈS ENSKRIPSYON YO PASE');
   assert.ok((await c3('inv-login', { ident: '3666 5544', pin: '5821' })).token);
 }
 console.log('TÈS IMÈL YO PASE');
+// ---- modpas lib ----
+{
+  const s4 = memoryStore();
+  const c4 = (action, body = {}, token = null) => handle(s4, { method: 'POST', action, body, token, query: {}, ip: '4.4.4.4' });
+  assert.match(await err(c4('register', { name: 'Ana Ana', phone: '31112222', pin: 'ab' })), /4 karaktè/);
+  const r = await c4('register', { name: 'Ana Ana', phone: '31112222', pin: 'Lakay#2026 bèl' });
+  assert.ok((await c4('inv-login', { ident: '31112222', pin: 'Lakay#2026 bèl' })).token);
+  assert.match(await err(c4('inv-pass', { old: 'pa-bon', pass: 'nouvo-modpas' }, r.token)), /Ansyen/);
+  await c4('inv-pass', { old: 'Lakay#2026 bèl', pass: 'nouvo-modpas' }, r.token);
+  assert.ok((await c4('inv-login', { ident: 'LP-001', pin: 'nouvo-modpas' })).token);
+}
+console.log('TÈS MODPAS YO PASE');

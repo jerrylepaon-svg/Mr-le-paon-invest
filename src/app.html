@@ -86,12 +86,12 @@ __HEADER__
     <div style="display:flex;gap:6px;margin-bottom:14px" role="tablist"><button class="sm" id="tLog" role="tab" aria-selected="true" style="flex:1;background:var(--mint);border-color:#9FC9BA">Konekte</button><button class="sm" id="tReg" role="tab" aria-selected="false" style="flex:1">Kreye yon kont</button></div>
     <div id="logPane">
     <h2 style="font-size:22px">Konekte nan kont ou</h2>
-    <p class="muted">Mete nimewo telefòn ou, imèl ou <b>oswa</b> ID envestisè ou (egz: LP-001), ak kòd PIN ou.</p>
+    <p class="muted">Mete nimewo telefòn ou, imèl ou <b>oswa</b> ID envestisè ou (egz: LP-001), ak modpas ou.</p>
     <label for="lId">Telefòn, imèl <span style="font-weight:400;color:var(--mut)">oswa</span> ID envestisè</label><input id="lId" autocomplete="username" placeholder="Egz: 3700 1122, non@gmail.com oswa LP-001">
-    <label for="lPin">Kòd PIN</label><input id="lPin" type="password" inputmode="numeric" autocomplete="current-password">
+    <label for="lPin">Modpas</label><input id="lPin" type="password" autocomplete="current-password">
     <div class="err" id="lErr" role="alert"></div>
     <div style="margin-top:14px"><button class="pri" id="lGo">Konekte</button></div>
-    <div class="muted" style="margin-top:14px">Ou bliye PIN ou? Ekri Keyn Event sou <a id="lWa" target="_blank" rel="noopener">WhatsApp</a>.</div>
+    <div class="muted" style="margin-top:14px">Ou bliye modpas ou? Ekri Keyn Event sou <a id="lWa" target="_blank" rel="noopener">WhatsApp</a>.</div>
     </div>
     <div id="regPane" class="hidden">
       <h2 style="font-size:22px">Kreye kont ou</h2>
@@ -100,8 +100,8 @@ __HEADER__
       <p class="muted" style="margin:10px 0 0">Mete imèl ou, nimewo telefòn ou, oswa toude.</p>
       <label for="rMail">Imèl ou</label><input id="rMail" type="email" autocomplete="email" placeholder="Egz: non@gmail.com">
       <label for="rTel">Nimewo telefòn ou</label><input id="rTel" type="tel" autocomplete="tel" placeholder="Egz: 3700 1122">
-      <label for="rPin">Chwazi yon kòd PIN (4 a 6 chif)</label><input id="rPin" type="password" inputmode="numeric" autocomplete="new-password">
-      <label for="rPin2">Ekri PIN lan ankò</label><input id="rPin2" type="password" inputmode="numeric" autocomplete="new-password">
+      <label for="rPin">Chwazi yon modpas</label><input id="rPin" type="password" autocomplete="new-password" placeholder="Omwen 4 karaktè: lèt, chif, siy…">
+      <label for="rPin2">Ekri modpas la ankò</label><input id="rPin2" type="password" autocomplete="new-password">
       <div class="err" id="rErr" role="alert"></div>
       <div style="margin-top:14px"><button class="pri" id="rGo">Kreye kont mwen</button></div>
     </div>
@@ -153,7 +153,7 @@ function route(){
   if(v==='akey'){loadSite();if(h==='envesti')setTimeout(()=>$('envesti').scrollIntoView(),50)}
   if(v==='kont')loadMe();
   if(v==='admin')loadAdmin();
-  if(!SITE&&v!=='akey')api('site').then(x=>{if(!SITE)SITE=x;$('fWa').textContent=fmtNum(x.wa);$('lWa').href=waLink(x.wa,'Bonjou Keyn Event! Mwen bliye PIN Mr Le Paon Invest mwen.')}).catch(()=>{});
+  if(!SITE&&v!=='akey')api('site').then(x=>{if(!SITE)SITE=x;$('fWa').textContent=fmtNum(x.wa);$('lWa').href=waLink(x.wa,'Bonjou Keyn Event! Mwen bliye modpas Mr Le Paon Invest mwen.')}).catch(()=>{});
 }
 window.addEventListener('hashchange',route);
 
@@ -167,7 +167,7 @@ async function loadSite(){
   $('hPlas').textContent=S.slotsLeft+' sou '+S.maxInv;
   $('hDispo').textContent=S.lots.reduce((a,l)=>a+l.free,0);
   $('hVann').textContent=S.sold;
-  $('fWa').textContent=fmtNum(S.wa);$('lWa').href=waLink(S.wa,'Bonjou Keyn Event! Mwen bliye PIN Mr Le Paon Invest mwen.');
+  $('fWa').textContent=fmtNum(S.wa);$('lWa').href=waLink(S.wa,'Bonjou Keyn Event! Mwen bliye modpas Mr Le Paon Invest mwen.');
   document.querySelectorAll('.wDays').forEach(x=>x.textContent=S.waitDays);
   $('pubLots').innerHTML=S.lots.length?S.lots.map(l=>{
     const pct=l.total?Math.round(l.taken/l.total*100):0,roi=l.price?Math.round(l.profit/l.price*1000)/10:0;
@@ -227,15 +227,15 @@ function showWait(r){
   $('eForm').classList.add('hidden');$('eWait').classList.remove('hidden');
   if(r.status==='approved'){
     $('eWait').innerHTML=`<h3 style="font-size:20px">Peman an konfime!</h3><p>Ou gen <b>${r.q} aksyon</b> nan "${esc(r.lot)}" kounye a.</p>
-    <div class="kv"><div class="card"><small>ID envestisè ou</small><b>${esc(r.code)}</b></div>${r.pin?`<div class="card"><small>Kòd PIN ou</small><b>${esc(r.pin)}</b></div>`:''}</div>
-    <p class="muted">${r.pin?'Ekri ID ak PIN ou yon kote ki an sekirite. Ou ka konekte ak ID ou oswa ak nimewo telefòn ou.':'Konekte ak menm PIN ou te genyen an.'}</p>
+    <div class="kv"><div class="card"><small>ID envestisè ou</small><b>${esc(r.code)}</b></div>${r.pin?`<div class="card"><small>Modpas tanporè ou</small><b>${esc(r.pin)}</b></div>`:''}</div>
+    <p class="muted">${r.pin?'Ekri ID ak modpas ou yon kote ki an sekirite. Ou ka chanje modpas la nan kont ou.':'Konekte ak menm modpas ou te chwazi a.'}</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><a href="#kont"><button class="pri">Ale nan kont mwen</button></a><button id="wNew">Fè yon lòt envestisman</button></div>`;
     ls.set('lp_wait',null);clearTimeout(waitTimer);waitTimer=null;refreshLots();
   }else if(r.status==='rejected'){
     $('eWait').innerHTML=`<h3 style="font-size:20px">Nou pa t ka konfime peman an</h3><p class="muted">Ekri Keyn Event sou WhatsApp pou nou regle sa.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><a href="${waLink(SITE?SITE.wa:'','Bonjou Keyn Event! Demann envestisman mwen an pa t konfime.')}" target="_blank" rel="noopener"><button class="pri">Ekri sou WhatsApp</button></a><button id="wNew">Retounen</button></div>`;
     ls.set('lp_wait',null);clearTimeout(waitTimer);waitTimer=null;
   }else{
-    $('eWait').innerHTML=`<h3 style="font-size:20px"><span class="spin"></span>Ap tann konfimasyon peman an</h3><p>Demann ou an rive (${esc(w.q||'')} aksyon · ${fm(w.amount)}). Depi SMS MonCash oswa NatCash la rive, aksyon ou yo ap aktive otomatikman epi ID ak PIN ou ap parèt isit la.</p>
+    $('eWait').innerHTML=`<h3 style="font-size:20px"><span class="spin"></span>Ap tann konfimasyon peman an</h3><p>Demann ou an rive (${esc(w.q||'')} aksyon · ${fm(w.amount)}). Depi SMS MonCash oswa NatCash la rive, aksyon ou yo ap aktive otomatikman epi ID ou ap parèt isit la.</p>
     <p class="muted">Ou ka kite paj la louvri. Si w fèmen l, tounen sou sit la pita: n ap montre w rezilta a.</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap"><a href="${waLink(SITE?SITE.wa:'',`Bonjou Keyn Event! Mwen fin peye pou Mr Le Paon Invest: ${w.q} aksyon, ${fm(w.amount)}. Telefòn: ${w.tel}`)}" target="_blank" rel="noopener"><button>Ekri Keyn Event sou WhatsApp</button></a><button id="wNew">Anile, retounen nan fòm lan</button></div>`;
   }
@@ -276,12 +276,24 @@ async function loadMe(){
     const st=[['Twal la achte',s.achte],['Nan magazen',s.dispo],['Vann',s.vann]];
     return `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px"><div><b>${esc(s.lot)}</b><div class="muted">Aksyon #${s.n} · ${fm(s.price)}${s.dispo&&s.loc?' · '+esc(s.loc):''}</div></div>${s.vann?`<span class="tag t-mint">+${fm(s.profit)}</span>`:`<span class="tag t-gray">An kou</span>`}</div>
     <div class="tl">${st.map(x=>`<div class="st ${x[1]?'done':''}"><div class="dot"></div>${x[0]}<br>${x[1]?fd(x[1]):'–'}</div>`).join('')}</div>${s.vann?'':statBox(s)}</div>`}).join(''):`<div class="card"><b>Ou poko gen aksyon.</b><p class="muted">Chwazi yon atik epi achte premye aksyon ou.</p><a href="#envesti"><button class="pri">Envesti kounye a</button></a></div>`}</div></div>
+  <details class="sec card"><summary><b>Chanje modpas mwen</b></summary>
+    <label for="cOld">Modpas ou genyen kounye a</label><input id="cOld" type="password" autocomplete="current-password">
+    <label for="cNew">Nouvo modpas</label><input id="cNew" type="password" autocomplete="new-password" placeholder="Omwen 4 karaktè">
+    <label for="cNew2">Ekri nouvo modpas la ankò</label><input id="cNew2" type="password" autocomplete="new-password">
+    <div class="err" id="cErr" role="alert"></div>
+    <div style="margin-top:12px"><button class="pri" id="cGo">Chanje modpas la</button></div></details>
   <div class="sec"><h2>Istorik</h2><div class="card">${d.history.length?d.history.map(h=>`<div class="row"><div>${esc(h.t)}<div class="muted">${fd(h.d)}</div></div><span class="money ${h.k==='in'?'plus':''}">${h.a>0?'+':'−'}${fm(Math.abs(h.a))}</span></div>`).join(''):'<div class="muted">Poko gen anyen.</div>'}</div></div>`;
   $('lOut').onclick=()=>{ls.set('lp_inv',null);ME=null;loadMe()};
+  ['cOld','cNew','cNew2'].forEach(id=>$(id).oninput=()=>$('cErr').textContent='');
+  $('cGo').onclick=async()=>{const e=$('cErr'),o=$('cOld').value,n=$('cNew').value;
+    if(!o){e.textContent='Mete modpas ou genyen kounye a.';return}
+    if(n.length<4){e.textContent='Nouvo modpas la dwe gen omwen 4 karaktè.';return}
+    if(n!==$('cNew2').value){e.textContent='De nouvo modpas yo pa menm.';return}
+    busy($('cGo'),true);try{await api('inv-pass',{old:o,pass:n},ls.get('lp_inv'));['cOld','cNew','cNew2'].forEach(id=>$(id).value='');toast('Modpas ou chanje.')}catch(x){e.textContent=x.message}finally{busy($('cGo'),false)}};
 }
 $('lGo').addEventListener('click',async()=>{
   const ident=$('lId').value.trim(),pin=$('lPin').value.trim();
-  if(!ident||!pin){$('lErr').textContent='Mete telefòn ou, imèl ou oswa ID ou, ak kòd PIN ou.';return}
+  if(!ident||!pin){$('lErr').textContent='Mete telefòn ou, imèl ou oswa ID ou, ak modpas ou.';return}
   busy($('lGo'),true);
   try{const r=await api('inv-login',{ident,pin});ls.set('lp_inv',r.token);$('lId').value=$('lPin').value='';loadMe()}catch(e){$('lErr').textContent=e.message}finally{busy($('lGo'),false)}
 });
@@ -295,8 +307,8 @@ $('rGo').addEventListener('click',async()=>{
   if(!phone&&!email){e.textContent='Mete imèl ou oswa nimewo telefòn ou (oswa toude).';return}
   if(phone&&!d8(phone)){e.textContent='Nimewo telefòn lan dwe gen 8 chif.';return}
   if(email&&!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)){e.textContent='Imèl la pa bon.';return}
-  if(!/^\d{4,6}$/.test(pin)){e.textContent='Kòd PIN lan dwe gen 4 a 6 chif.';return}
-  if(pin!==$('rPin2').value.trim()){e.textContent='De PIN yo pa menm. Ekri yo ankò.';return}
+  if(pin.length<4){e.textContent='Modpas la dwe gen omwen 4 karaktè.';return}
+  if(pin!==$('rPin2').value.trim()){e.textContent='De modpas yo pa menm. Ekri yo ankò.';return}
   busy($('rGo'),true,'Ap kreye…');
   try{const r=await api('register',{name,phone,email,pin});ls.set('lp_inv',r.token);['rName','rMail','rTel','rPin','rPin2'].forEach(id=>$(id).value='');toast('Kont ou kreye! ID ou se '+r.code+'.');loadMe()}catch(x){e.textContent=x.message}finally{busy($('rGo'),false)}
 });
@@ -383,7 +395,7 @@ function renderAdmin(){
     <h3 style="font-size:18px">Kont yo (${a.investors.length}) · envestisè aktif: ${a.active}/${S.maxInv}</h3>
     ${a.investors.map(i=>`<div class="row" style="flex-wrap:wrap"><div style="flex:1;min-width:180px"><b>${esc(i.name)}</b>${i.locked?' <span class="tag t-gold">Bloke</span>':''}<div class="muted">ID <b>${esc(i.code)}</b>${i.phone?' · '+esc(fmtNum(i.phone)):''}${i.email?' · '+esc(i.email):''} · ${i.shares} aksyon</div></div>
       <div style="text-align:right"><div class="muted">Pare pou peye</div><b style="color:var(--golddk)">${fm(i.money.ready)}</b></div>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;width:100%"><input type="number" min="1" step="1" placeholder="Kantite (G)" id="w-${i.id}" style="max-width:150px;min-height:36px"><select id="wm-${i.id}" style="max-width:130px;min-height:36px;font-size:13px"><option>MonCash</option><option>NatCash</option></select><button class="sm" data-pay="${i.id}">Make retrè peye</button><button class="sm" data-pin="${i.id}">Nouvo PIN</button><span class="err" id="we-${i.id}"></span></div></div>`).join('')||'<div class="muted" style="margin:8px 0">Poko gen envestisè.</div>'}
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;width:100%"><input type="number" min="1" step="1" placeholder="Kantite (G)" id="w-${i.id}" style="max-width:150px;min-height:36px"><select id="wm-${i.id}" style="max-width:130px;min-height:36px;font-size:13px"><option>MonCash</option><option>NatCash</option></select><button class="sm" data-pay="${i.id}">Make retrè peye</button><button class="sm" data-pin="${i.id}">Nouvo modpas</button><span class="err" id="we-${i.id}"></span></div></div>`).join('')||'<div class="muted" style="margin:8px 0">Poko gen envestisè.</div>'}
     <div class="f2" style="margin-top:10px">
       <div><label for="iName">Non</label><input id="iName"></div>
       <div><label for="iTel">Telefòn</label><input id="iTel" type="tel"></div>
@@ -451,10 +463,10 @@ function bindAdmin(){
   q('[data-sadd]').forEach(b=>b.onclick=async()=>{openLot=b.dataset.sadd;try{await act('share-add',{id:b.dataset.sadd},b);loadAdmin()}catch(e){toast(e.message,true)}});
   q('[data-ldel]').forEach(b=>b.onclick=async()=>{if(!confirm('Efase atik sa a?'))return;try{await act('lot-del',{id:b.dataset.ldel},b);loadAdmin()}catch(e){toast(e.message,true)}});
   q('[data-pay]').forEach(b=>b.onclick=async()=>{const id=b.dataset.pay,e=$('we-'+id),v=Math.round(+$('w-'+id).value);if(!v||v<1){e.textContent='Mete yon kantite.';return}try{await act('withdraw',{inv:id,amount:v,method:$('wm-'+id).value},b);toast('Retrè a anrejistre.');loadAdmin()}catch(x){e.textContent=x.message}});
-  q('[data-pin]').forEach(b=>b.onclick=async()=>{if(!confirm('Bay envestisè sa a yon nouvo PIN? Ansyen PIN lan p ap mache ankò.'))return;try{const r=await act('inv-pin',{id:b.dataset.pin},b);setOk(`<div class="ok">Nouvo PIN pou ${esc(r.name)} (${esc(r.code)}): <b>${esc(r.pin)}</b><br><a href="${waLink(r.phone,`Bonjou ${r.name}! Men nouvo kòd PIN Mr Le Paon Invest ou: ${r.pin}\nID envestisè: ${r.code}`)}" target="_blank" rel="noopener">Voye l ba li sou WhatsApp</a></div>`);loadAdmin()}catch(e){toast(e.message,true)}});
+  q('[data-pin]').forEach(b=>b.onclick=async()=>{if(!confirm('Bay envestisè sa a yon nouvo modpas tanporè? Ansyen modpas li p ap mache ankò.'))return;try{const r=await act('inv-pin',{id:b.dataset.pin},b);setOk(`<div class="ok">Nouvo modpas tanporè pou ${esc(r.name)} (${esc(r.code)}): <b>${esc(r.pin)}</b><br><a href="${waLink(r.phone,`Bonjou ${r.name}! Men nouvo modpas tanporè Mr Le Paon Invest ou: ${r.pin} (chanje l nan kont ou)\nID envestisè: ${r.code}`)}" target="_blank" rel="noopener">Voye l ba li sou WhatsApp</a></div>`);loadAdmin()}catch(e){toast(e.message,true)}});
   ['iName','iTel'].forEach(id=>$(id).oninput=()=>$('iErr').textContent='');
   $('iGo').onclick=async()=>{const name=$('iName').value.trim(),phone=$('iTel').value.trim(),e=$('iErr');if(!name){e.textContent='Mete non envestisè a.';return}if(!d8(phone)){e.textContent='Mete yon nimewo telefòn ki gen 8 chif.';return}
-    try{const r=await act('inv-add',{name,phone},$('iGo'));setOk(`<div class="ok">${esc(r.name)} ajoute. ID: <b>${esc(r.code)}</b> · PIN: <b>${esc(r.pin)}</b><br><a href="${waLink(r.phone,`Bonjou ${r.name}! Men aksè Mr Le Paon Invest ou.\nTelefòn: ${r.phone}\nID envestisè: ${r.code}\nKòd PIN: ${r.pin}`)}" target="_blank" rel="noopener">Voye l ba li sou WhatsApp</a></div>`);loadAdmin()}catch(x){e.textContent=x.message}};
+    try{const r=await act('inv-add',{name,phone},$('iGo'));setOk(`<div class="ok">${esc(r.name)} ajoute. ID: <b>${esc(r.code)}</b> · Modpas tanporè: <b>${esc(r.pin)}</b><br><a href="${waLink(r.phone,`Bonjou ${r.name}! Men aksè Mr Le Paon Invest ou.\nTelefòn: ${r.phone}\nID envestisè: ${r.code}\nModpas tanporè: ${r.pin} (chanje l nan kont ou)`)}" target="_blank" rel="noopener">Voye l ba li sou WhatsApp</a></div>`);loadAdmin()}catch(x){e.textContent=x.message}};
   $('smsCopy').onclick=()=>{try{navigator.clipboard.writeText($('smsUrl').textContent);toast('Adrès la kopye.')}catch(e){toast('Kopye l ak men w.',true)}};
   $('smsNew').onclick=async()=>{if(!confirm('Chanje kle SMS la? Fòk ou mete nouvo adrès la nan telefòn nan.'))return;try{await act('sms-key-new',{},$('smsNew'));loadAdmin()}catch(e){toast(e.message,true)}};
   $('pAdd').onclick=()=>{$('payEd').insertAdjacentHTML('beforeend',payRow({id:'p'+Date.now().toString(36),label:'',number:'',name:'',active:true},0));bindPayRm()};
