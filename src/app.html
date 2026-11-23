@@ -327,6 +327,7 @@ async function loadMe(){
     <div class="card"><small>Kòb ki nan stòk la</small><b>${fm(m.stock)}</b></div>
     <div class="card"><small>Benefis total</small><b class="plus">+${fm(m.benefit)}</b></div>
   </div>
+  ${pushBox('inv')}
   ${(alerts.length||d.messages.length)?`<div class="sec card"><h3 style="font-size:18px">Mesaj Keyn Event</h3>${alerts.filter(s=>!seen.has(s.lot)&&seen.add(s.lot)).map(s=>`<div><b style="font-size:14px">${esc(s.lot)}</b>${statBox({status:s.status,statusText:s.statusText,note:s.note})}</div>`).join('')}${d.messages.map(x=>`<div class="row" style="display:block"><div>${esc(x.text)}</div><div class="muted">${fd(x.date)}${x.mine?' · pou ou sèlman':''}</div></div>`).join('')}</div>`:''}
   <div class="sec card"><h3 style="font-size:18px">Mande yon retrè</h3>
     <p class="muted" style="margin:6px 0 12px">Kòb ou disponib pou retire ${d.waitDays} jou apre atik la vann. Keyn Event voye l sou MonCash oswa NatCash ou.</p>
@@ -342,7 +343,7 @@ async function loadMe(){
     <div class="err" id="cErr" role="alert"></div>
     <div style="margin-top:12px"><button class="pri" id="cGo">Chanje modpas la</button></div></details>
   <div class="sec"><h2>Istorik</h2><div class="card">${d.history.length?d.history.map(h=>`<div class="row"><div>${esc(h.t)}<div class="muted">${fd(h.d)}</div></div><span class="money ${h.k==='in'?'plus':''}">${h.a>0?'+':'−'}${fm(Math.abs(h.a))}</span></div>`).join(''):'<div class="muted">Poko gen anyen.</div>'}</div></div>`;
-  $('lOut').onclick=()=>{ls.set('lp_inv',null);ME=null;loadMe()};
+  $('lOut').onclick=()=>{ls.set('lp_inv',null);ME=null;loadMe()};bindPush();
   ['cOld','cNew','cNew2'].forEach(id=>$(id).oninput=()=>$('cErr').textContent='');
   $('cGo').onclick=async()=>{const e=$('cErr'),o=$('cOld').value,n=$('cNew').value;
     if(!o){e.textContent='Mete modpas ou genyen kounye a.';return}
@@ -404,6 +405,7 @@ function renderAdmin(){
     <div class="card"><small>Deja peye</small><b>${fm(t.paid)}</b></div>
   </div>
   <div id="okZone">${lastOk}</div>
+  ${pushBox('admin')}
 
   <div class="sec card">
     <h3 style="font-size:18px">Demann envestisman k ap tann (${a.requests.length})</h3>
@@ -499,7 +501,7 @@ function setOk(h){lastOk=h;const z=$('okZone');if(z){z.innerHTML=h;z.scrollIntoV
 function bindAdmin(){
   const q=s=>$('adm').querySelectorAll(s);
   $('aOut').onclick=()=>{ls.set('lp_admin',null);A=null;lastOk='';loadAdmin()};
-  $('aRef').onclick=()=>loadAdmin();
+  $('aRef').onclick=()=>loadAdmin();bindPush();
   q('[data-ok]').forEach(b=>b.onclick=async()=>{try{const r=await act('req-approve',{id:b.dataset.ok},b);setOk(okBox(r));await loadAdmin()}catch(e){toast(e.message,true)}});
   q('[data-no]').forEach(b=>b.onclick=async()=>{if(!confirm('Refize demann sa a?'))return;try{await act('req-reject',{id:b.dataset.no},b);loadAdmin()}catch(e){toast(e.message,true)}});
   $('smsTxt').oninput=()=>$('smsErr').textContent='';
@@ -544,10 +546,38 @@ function bindAdmin(){
 function bindPayRm(){$('adm').querySelectorAll('.prm').forEach(b=>b.onclick=()=>{if($('payEd').querySelectorAll('.pr').length<=1){$('sErr').textContent='Kite omwen yon mwayen peman.';return}b.closest('.pr').remove()})}
 setInterval(()=>{const a=document.activeElement;if(!$('v-admin').classList.contains('hidden')&&at()&&!(a&&/INPUT|SELECT|TEXTAREA/.test(a.tagName))&&!document.querySelector('#adm details[open] input:focus'))loadAdmin()},30000);
 
+/* ---------------- notifikasyon ---------------- */
+const ua=navigator.userAgent,isIOS=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const pushOk=()=>'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
+function pushBox(role){
+  const id='push-'+role;
+  if(!pushOk())return `<div class="sec card" id="${id}"><b>🔔 Notifikasyon</b><div class="muted">${isIOS?'Sou iPhone, enstale aplikasyon an anvan (Pataje → "Ajoute sou ekran akèy"), louvri l depi icon an, epi tounen la a pou w aktive notifikasyon yo.':'Navigatè sa a pa ka resevwa notifikasyon. Eseye ak Chrome.'}</div></div>`;
+  const on=Notification.permission==='granted'&&ls.get('lp_push_'+role)==='1';
+  return `<div class="sec card" id="${id}" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:200px"><b>🔔 Notifikasyon</b><div class="muted">${role==='admin'?'Resevwa yon alèt sou telefòn ou pou chak nouvo demann, kont ak peman.':'Resevwa yon alèt lè peman ou konfime, lè machandiz ou disponib, lè l vann, ak lè Keyn Event voye w yon mesaj.'}</div></div><button class="${on?'':'pri'}" data-push="${role}">${on?'✓ Aktive · Teste ankò':'Aktive notifikasyon yo'}</button></div>`;
+}
+function u8(b){const p='='.repeat((4-b.length%4)%4),r=atob((b+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(r,c=>c.charCodeAt(0))}
+async function enablePush(role,btn){
+  try{
+    if(Notification.permission==='denied'){toast('Notifikasyon yo bloke. Louvri paramèt sit la nan navigatè a epi pèmèt notifikasyon.',true);return}
+    busy(btn,true);
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){toast('Ou pa t pèmèt notifikasyon yo.',true);return}
+    const reg=await navigator.serviceWorker.ready;
+    const {key}=await api('push-key');
+    let sub=await reg.pushManager.getSubscription();
+    if(sub&&sub.options&&sub.options.applicationServerKey){const k=new Uint8Array(sub.options.applicationServerKey),w=u8(key);if(k.length!==w.length||k.some((x,i)=>x!==w[i])){await sub.unsubscribe();sub=null}}
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:u8(key)});
+    await api('push-sub',{sub:sub.toJSON(),role},role==='admin'?ls.get('lp_admin'):ls.get('lp_inv'));
+    ls.set('lp_push_'+role,'1');toast('Notifikasyon aktive! Ou dwe resevwa youn kounye a.');
+    const box=$('push-'+role);if(box)box.outerHTML=pushBox(role);bindPush();
+  }catch(e){toast(e.message||'Pa ka aktive notifikasyon yo.',true)}finally{busy(btn,false)}
+}
+function bindPush(){document.querySelectorAll('[data-push]').forEach(b=>b.onclick=()=>enablePush(b.dataset.push,b))}
+
 /* ---------------- aplikasyon (PWA) ---------------- */
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
-const ua=navigator.userAgent,isIOS=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+
 let deferred=null;
 function showInst(){if(standalone||ls.get('lp_inst_no')==='1')return;$('instBox').classList.remove('hidden');$('instBox').style.display='flex'}
 function hideInst(){$('instBox').classList.add('hidden');$('instBox').style.display='none'}

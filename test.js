@@ -140,3 +140,35 @@ console.log('TÈS MODPAS YO PASE');
   assert.ok(!d.lots[0].shares[0].achte && !d.lots[0].shares[0].dispo);
 }
 console.log('TÈS ETAP YO PASE');
+// ---- notifikasyon ----
+{
+  const crypto = await import('node:crypto');
+  const mk = () => { const e = crypto.createECDH('prime256v1'); e.generateKeys(); return { p256dh: e.getPublicKey().toString('base64url'), auth: crypto.randomBytes(16).toString('base64url') }; };
+  const sent = [];
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url, o) => { sent.push(String(url)); return new Response('', { status: url.includes('gone') ? 410 : 201 }); };
+  const s6 = memoryStore();
+  const c6 = (action, body = {}, token = null) => handle(s6, { method: 'POST', action, body, token, query: {}, ip: '6.6.6.6' });
+  const g6 = (action, token = null) => handle(s6, { method: 'GET', action, body: {}, token, query: {}, ip: '6.6.6.6' });
+  const { token: a6 } = await c6('login', { password: 'test' });
+  const key = await g6('push-key'); assert.ok(key.key.length > 80);
+  await c6('push-sub', { role: 'admin', sub: { endpoint: 'https://push.example.com/admin1', keys: mk() } }, a6);
+  assert.match(await err(c6('push-sub', { role: 'admin', sub: { endpoint: 'https://push.example.com/x', keys: mk() } })), /admin/);
+  const reg = await c6('register', { name: 'Pou Push', phone: '38889999', pin: 'bon-modpas' });
+  await c6('push-sub', { role: 'inv', sub: { endpoint: 'https://push.example.com/inv1', keys: mk() } }, reg.token);
+  await c6('push-sub', { role: 'inv', sub: { endpoint: 'https://push.example.com/gone1', keys: mk() } }, reg.token);
+  sent.length = 0;
+  const rq = await c6('request', { name: 'Pou Push', tel: '38889999', q: 1, lot: 'l1', pay: 'mc1', from: '38889999' }, reg.token);
+  assert.deepEqual(sent, ['https://push.example.com/admin1']); // nouvo demann -> admin
+  sent.length = 0;
+  await c6('req-approve', { id: rq.id }, a6);
+  assert.ok(sent.includes('https://push.example.com/inv1') && sent.includes('https://push.example.com/admin1'));
+  // abònman "gone" efase
+  const ad = await g6('admin-data', a6); assert.equal(ad.pushInv, 1);
+  sent.length = 0;
+  await c6('share-step', { lot: 'l1', i: 0, step: 'vann', on: true }, a6);
+  assert.deepEqual(sent, ['https://push.example.com/inv1']);
+  sent.length = 0; await c6('msg-add', { text: 'Bonjou' }, a6); assert.deepEqual(sent, ['https://push.example.com/inv1']);
+  globalThis.fetch = realFetch;
+}
+console.log('TÈS NOTIFIKASYON YO PASE');
