@@ -127,7 +127,7 @@ textarea{width:100%;border:1px solid #CBD3D0;border-radius:10px;padding:10px;fon
     <h2>Kijan sa mache</h2>
     <div class="card steps">
       <div class="step"><span class="num">1</span><div><b>Ou achte aksyon</b><div class="muted">Chak aksyon se yon atik reyèl, tankou yon woulo twal.</div></div></div>
-      <div class="step"><span class="num">2</span><div><b>Keyn Event achte machandiz la</b><div class="muted">Ou wè dat li achte a, ak dat li rive nan magazen an.</div></div></div>
+      <div class="step"><span class="num">2</span><div><b>Keyn Event achte machandiz la</b><div class="muted">Ou wè lè li achte, lè li disponib nan biznis lan, ak lè li vann.</div></div></div>
       <div class="step"><span class="num">3</span><div><b>Atik la vann</b><div class="muted">Kòb ou te mete a plis benefis ou tonbe nan kont ou.</div></div></div>
       <div class="step"><span class="num">4</span><div><b>Ou retire kòb ou</b><div class="muted"><span class="wDays">8</span> jou apre kòb la disponib, ou ka mande l sou MonCash oswa NatCash.</div></div></div>
     </div>
@@ -370,7 +370,7 @@ async function loadMe(){
     <p class="muted" style="margin:6px 0 12px">Kòb ou disponib pou retire ${d.waitDays} jou apre atik la vann. Keyn Event voye l sou MonCash oswa NatCash ou.</p>
     ${m.ready>0?`<a href="${waLink(d.wa,msg)}" target="_blank" rel="noopener"><button class="pri">Mande ${fm(m.ready)} sou WhatsApp</button></a>`:`<div class="muted">Ou pa gen kòb disponib pou retire kounye a.</div>`}</div>
   <div class="sec"><h2>Aksyon mwen yo (${d.shares.length})</h2><div class="grid">${d.shares.length?d.shares.map(s=>{
-    const st=[['Twal la achte',s.achte],['Nan magazen',s.dispo],['Vann',s.vann]];
+    const st=[['Achte',s.achte],['Disponib nan biznis lan',s.dispo],['Vann',s.vann]];
     return `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px"><div><b>${esc(s.lot)}</b><div class="muted">Aksyon #${s.n} · ${fm(s.price)}${s.dispo&&s.loc?' · '+esc(s.loc):''}</div></div>${s.vann?`<span class="tag t-mint">+${fm(s.profit)}</span>`:`<span class="tag t-gray">An kou</span>`}</div>
     <div class="tl">${st.map(x=>`<div class="st ${x[1]?'done':''}"><div class="dot"></div>${x[0]}<br>${x[1]?fd(x[1]):'–'}</div>`).join('')}</div>${s.vann?'':statBox(s)}</div>`}).join(''):`<div class="card"><b>Ou poko gen aksyon.</b><p class="muted">Chwazi yon atik epi achte premye aksyon ou.</p><a href="#envesti"><button class="pri">Envesti kounye a</button></a></div>`}</div></div>
   <details class="sec card"><summary><b>Chanje modpas mwen</b></summary>
@@ -481,15 +481,10 @@ function renderAdmin(){
     <div class="f2" style="margin-top:8px"><div><label>Magazen</label><select data-lf="loc" data-l="${l.id}"><option value="">Pou konfime</option>${a.locs.map(x=>`<option ${l.loc===x?'selected':''}>${esc(x)}</option>`).join('')}</select></div>
     <div><label>Eta machandiz la</label><select data-lf="status" data-l="${l.id}">${Object.keys(a.stat).map(k=>`<option value="${k}" ${l.status===k?'selected':''}>${esc(a.stat[k])}</option>`).join('')}</select></div></div>
     <label>Mesaj pou envestisè yo sou atik sa a</label><input data-lf="note" data-l="${l.id}" value="${esc(l.note)}" placeholder="Egz: Twal la ap rive nan 5 jou, transpò a an reta">
-    <div style="background:#F7FBF9;border:1px dashed #9FC9BA;border-radius:12px;padding:12px;margin-top:12px">
-      <b>Mete yon dat pou tout aksyon atik sa a an menm tan</b>
-      <div class="muted">Pou lè tout twal yo achte oswa rive nan magazen an menm jou a.</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px"><input type="date" id="bd-${l.id}" value="${new Date(Date.now()-5*3600e3).toISOString().slice(0,10)}" style="max-width:170px" aria-label="Dat"><button class="sm" data-bulk="achte" data-l="${l.id}">Twal la achte</button><button class="sm" data-bulk="dispo" data-l="${l.id}">Rive nan magazen</button></div>
-    </div>
-    <p style="margin:14px 0 6px"><b>Chak aksyon youn pa youn</b><br><span class="muted">Chwazi envestisè a, epi peze sou dat la pou chak etap: <b>Twal la achte</b>, <b>Nan magazen</b>, <b>Vann</b>. Lè w mete dat "Vann", kòb la tonbe nan kont envestisè a.</span></p>
-    <div class="scroll"><table class="tbl"><thead><tr><th>#</th><th>Envestisè</th><th>Dat envestisman</th><th>Twal la achte</th><th>Nan magazen</th><th>Vann</th></tr></thead><tbody>
+    <p class="muted" style="margin:14px 0 6px">Peze sou bouton an lè etap la fèt. Peze ankò pou anile l.</p>
+    <div class="scroll"><table class="tbl" style="min-width:560px"><thead><tr><th>#</th><th>Envestisè</th><th>Achte</th><th>Disponib nan biznis lan</th><th>Vann</th></tr></thead><tbody>
     ${l.shares.map((s,i)=>`<tr><td>${s.n}</td><td><select data-sf="inv" data-l="${l.id}" data-i="${i}" style="min-height:36px;font-size:13px">${invOpts(s.inv)}</select></td>
-    ${['invDate','achte','dispo','vann'].map(k=>`<td><input type="date" value="${s[k]||''}" data-sf="${k}" data-l="${l.id}" data-i="${i}" aria-label="${k} aksyon ${s.n}"></td>`).join('')}</tr>`).join('')}
+    ${[['achte','Achte'],['dispo','Disponib'],['vann','Vann']].map(([k,t])=>`<td><button class="sm" data-step="${k}" data-on="${s[k]?0:1}" data-l="${l.id}" data-i="${i}" style="min-width:110px;${s[k]?'background:var(--em);border-color:var(--em);color:#fff':''}" aria-pressed="${!!s[k]}">${s[k]?'✓ '+t:t}</button>${s[k]?`<div class="muted" style="font-size:11px;margin-top:2px">${fd(s[k])}</div>`:''}</td>`).join('')}</tr>`).join('')}
     </tbody></table></div>
     <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="sm" data-sadd="${l.id}">+ 1 aksyon</button>${taken===0?`<button class="sm dang" data-ldel="${l.id}">Efase atik sa a</button>`:''}</div></details>`}).join('')||'<div class="card muted">Pa gen aksyon.</div>'}</div>
 
@@ -560,7 +555,7 @@ function bindAdmin(){
     try{const r=await act('lot-add',{name,detail:$('nDet').value.trim(),loc:$('nLoc').value,qty,price,profit:Math.round(+$('nProf').value)},$('nGo'));openLot=r.id;toast('Aksyon yo ajoute.');loadAdmin()}catch(x){e.textContent=x.message}
   };
   q('details[data-lot]').forEach(d=>d.addEventListener('toggle',()=>{if(d.open)closedLots.delete(d.dataset.lot);else closedLots.add(d.dataset.lot);const m=d.querySelector('summary span[style*="--em"]');if(m)m.textContent=d.open?'▾ Fèmen':'▸ Louvri'}));
-  q('[data-bulk]').forEach(b=>b.onclick=async()=>{const v=$('bd-'+b.dataset.l).value;if(!v){toast('Chwazi yon dat.',true);return}try{const r=await act('share-bulk',{lot:b.dataset.l,f:b.dataset.bulk,v},b);toast(r.n?r.n+' aksyon mete ajou.':'Tout aksyon yo te deja gen dat sa a.');loadAdmin()}catch(e){toast(e.message,true)}});
+  q('[data-step]').forEach(b=>b.onclick=async()=>{const on=b.dataset.on==='1';if(!on&&!confirm('Anile etap sa a?'))return;try{await act('share-step',{lot:b.dataset.l,i:+b.dataset.i,step:b.dataset.step,on},b);loadAdmin()}catch(e){toast(e.message,true)}});
   q('[data-lf]').forEach(el=>el.addEventListener('change',async()=>{openLot=el.dataset.l;try{await act('lot-update',{id:el.dataset.l,[el.dataset.lf]:el.value});toast('Anrejistre.');loadAdmin()}catch(e){toast(e.message,true);loadAdmin()}}));
   q('[data-sf]').forEach(el=>el.addEventListener('change',async()=>{openLot=el.dataset.l;try{await act('share-set',{lot:el.dataset.l,i:+el.dataset.i,f:el.dataset.sf,v:el.value});loadAdmin()}catch(e){toast(e.message,true);loadAdmin()}}));
   q('[data-sadd]').forEach(b=>b.onclick=async()=>{openLot=b.dataset.sadd;try{await act('share-add',{id:b.dataset.sadd},b);loadAdmin()}catch(e){toast(e.message,true)}});

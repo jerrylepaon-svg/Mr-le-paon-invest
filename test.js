@@ -125,3 +125,18 @@ console.log('TÈS IMÈL YO PASE');
   assert.ok((await c4('inv-login', { ident: 'LP-001', pin: 'nouvo-modpas' })).token);
 }
 console.log('TÈS MODPAS YO PASE');
+// ---- etap senp ----
+{
+  const s5 = memoryStore();
+  const c5 = (action, body = {}, token = null) => handle(s5, { method: 'POST', action, body, token, query: {}, ip: '5.5.5.5' });
+  const { token: a5 } = await c5('login', { password: 'test' });
+  const lot = 'l1';
+  assert.match(await err(c5('share-step', { lot, i: 0, step: 'vann', on: true }, a5)), /envestisè/);
+  await c5('share-step', { lot, i: 0, step: 'dispo', on: true }, a5);
+  let d = await handle(s5, { method: 'GET', action: 'admin-data', body: {}, token: a5, query: {}, ip: 'x' });
+  assert.ok(d.lots[0].shares[0].achte && d.lots[0].shares[0].dispo && !d.lots[0].shares[0].vann);
+  await c5('share-step', { lot, i: 0, step: 'achte', on: false }, a5);
+  d = await handle(s5, { method: 'GET', action: 'admin-data', body: {}, token: a5, query: {}, ip: 'x' });
+  assert.ok(!d.lots[0].shares[0].achte && !d.lots[0].shares[0].dispo);
+}
+console.log('TÈS ETAP YO PASE');
