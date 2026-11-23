@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#04342C">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Le Paon Invest">
 <title>Mr Le Paon Invest</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2040%2040%22%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%2220%22%20fill%3D%22%230F6E56%22/%3E%3Cellipse%20cx%3D%2220%22%20cy%3D%2217%22%20rx%3D%229.5%22%20ry%3D%2212.5%22%20fill%3D%22%231D9E75%22/%3E%3Cellipse%20cx%3D%2220%22%20cy%3D%2216.5%22%20rx%3D%226.4%22%20ry%3D%228.6%22%20fill%3D%22%23EF9F27%22/%3E%3Cellipse%20cx%3D%2220%22%20cy%3D%2216%22%20rx%3D%223.4%22%20ry%3D%224.6%22%20fill%3D%22%230C447C%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -122,6 +128,11 @@ textarea{width:100%;border:1px solid #CBD3D0;border-radius:10px;padding:10px;fon
 </header>
 
 <main class="wrap">
+<div id="instBox" class="card hidden" style="margin-bottom:18px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;border:2px solid #9FC9BA">
+  <img src="/icons/icon-192.png" alt="" width="52" height="52" style="border-radius:12px">
+  <div style="flex:1;min-width:200px"><b>Mete Mr Le Paon Invest sou telefòn ou</b><div class="muted" id="instTxt">Louvri l tankou yon aplikasyon, dirèkteman sou ekran telefòn ou.</div></div>
+  <div style="display:flex;gap:8px"><button class="pri" id="instGo">Enstale l</button><button class="sm" id="instNo" aria-label="Fèmen">Pita</button></div>
+</div>
 <section id="v-akey">
   <div class="sec">
     <h2>Kijan sa mache</h2>
@@ -629,6 +640,24 @@ function bindAdmin(){
 }
 function bindPayRm(){$('adm').querySelectorAll('.prm').forEach(b=>b.onclick=()=>{if($('payEd').querySelectorAll('.pr').length<=1){$('sErr').textContent='Kite omwen yon mwayen peman.';return}b.closest('.pr').remove()})}
 setInterval(()=>{const a=document.activeElement;if(!$('v-admin').classList.contains('hidden')&&at()&&!(a&&/INPUT|SELECT|TEXTAREA/.test(a.tagName))&&!document.querySelector('#adm details[open] input:focus'))loadAdmin()},30000);
+
+/* ---------------- aplikasyon (PWA) ---------------- */
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const ua=navigator.userAgent,isIOS=/iphone|ipad|ipod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+let deferred=null;
+function showInst(){if(standalone||ls.get('lp_inst_no')==='1')return;$('instBox').classList.remove('hidden');$('instBox').style.display='flex'}
+function hideInst(){$('instBox').classList.add('hidden');$('instBox').style.display='none'}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;showInst()});
+window.addEventListener('appinstalled',()=>{hideInst();toast('Aplikasyon an enstale sou telefòn ou!')});
+if(!standalone&&(isIOS||/android/i.test(ua)))setTimeout(()=>{if(!deferred)showInst()},2500);
+$('instGo').onclick=async()=>{
+  if(deferred){deferred.prompt();const r=await deferred.userChoice;deferred=null;if(r.outcome==='accepted')hideInst();return}
+  $('instTxt').innerHTML=isIOS
+    ?'Sou iPhone: louvri sit la nan <b>Safari</b>, peze bouton <b>Pataje</b> (kare ak flèch anlè a), epi chwazi <b>"Sur l\'écran d\'accueil" / "Add to Home Screen"</b>.'
+    :'Peze <b>⋮</b> (twa pwen anwo a dwat) nan Chrome, epi chwazi <b>"Ajouter à l\'écran d\'accueil"</b> oswa <b>"Installer l\'application"</b>.';
+};
+$('instNo').onclick=()=>{ls.set('lp_inst_no','1');hideInst()};
 
 route();
 })();

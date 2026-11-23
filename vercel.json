@@ -1,12 +1,64 @@
 {
   "cleanUrls": true,
   "redirects": [
-    { "source": "/admin", "destination": "/#admin", "permanent": false },
-    { "source": "/kont", "destination": "/#kont", "permanent": false },
-    { "source": "/lib/:path*", "destination": "/", "permanent": false },
-    { "source": "/dev-server.js", "destination": "/", "permanent": false },
-    { "source": "/test.js", "destination": "/", "permanent": false },
-    { "source": "/src/:path*", "destination": "/", "permanent": false },
-    { "source": "/build.py", "destination": "/", "permanent": false }
+    {
+      "source": "/admin",
+      "destination": "/#admin",
+      "permanent": false
+    },
+    {
+      "source": "/kont",
+      "destination": "/#kont",
+      "permanent": false
+    },
+    {
+      "source": "/lib/:path*",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/dev-server.js",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/test.js",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/src/:path*",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/build.py",
+      "destination": "/",
+      "permanent": false
+    }
+  ],
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
+      ]
+    },
+    {
+      "source": "/manifest.webmanifest",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json"
+        }
+      ]
+    }
   ]
 }
