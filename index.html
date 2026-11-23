@@ -500,11 +500,15 @@ function renderAdmin(){
     <div class="card"><small>Ou dwe envestisè yo</small><b>${fm(t.owed)}</b></div>
     <div class="card"><small>Pare pou peye kounye a</small><b style="color:var(--golddk)">${fm(t.ready)}</b></div>
     <div class="card"><small>Deja peye</small><b>${fm(t.paid)}</b></div>
+    <a href="#" data-jump="a-kliyan" class="card" style="text-decoration:none;color:inherit;border:2px solid #9FC9BA"><small>Kliyan ki enskri</small><b>${a.investors.length}</b></a>
   </div>
+  <nav aria-label="Seksyon admin" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+    ${[['a-demann','Demann ('+a.requests.length+')'],['a-kliyan','Kliyan ('+a.investors.length+')'],['a-mesaj','Mesaj'],['a-aksyon','Aksyon yo'],['a-param','Paramèt']].map(([id,t])=>`<button class="sm" data-jump="${id}">${t}</button>`).join('')}
+  </nav>
   <div id="okZone">${lastOk}</div>
   ${pushBox('admin')}
 
-  <div class="sec card">
+  <div class="sec card" id="a-demann">
     <h3 style="font-size:18px">Demann envestisman k ap tann (${a.requests.length})</h3>
     <p class="muted" style="margin:6px 0 4px">Demann yo aktive otomatikman lè SMS MonCash oswa NatCash la koresponn ak ID tranzaksyon an, oswa ak nimewo ki peye a plis montan an. Sa ki rete la yo, tcheke yo ak men w.</p>
     ${a.requests.map(r=>`<div class="row" style="flex-wrap:wrap"><div style="flex:1;min-width:200px"><b>${esc(r.name)}</b> · ${esc(fmtNum(r.tel))}<div class="muted">${r.q} aksyon · ${esc(r.lotName)} · ${fm(r.amount)}</div><div class="muted">Peye sou ${esc(r.method)}${r.txid?' · ID: <b>'+esc(r.txid)+'</b>':''}${r.from?' · soti nan <b>'+esc(fmtNum(r.from))+'</b>':''} · ${fd(r.date)}</div></div><div style="display:flex;gap:6px"><button class="sm pri" data-ok="${r.id}">Apwouve</button><button class="sm dang" data-no="${r.id}">Refize</button></div></div>`).join('')||'<div class="muted" style="margin-top:8px">Pa gen demann k ap tann.</div>'}
@@ -513,7 +517,22 @@ function renderAdmin(){
     <div style="margin-top:8px"><button class="sm pri" id="smsGo">Verifye epi aktive</button></div>
   </div>
 
-  <div class="sec card">
+  <div class="sec card" id="a-kliyan">
+    <h3 style="font-size:20px">👥 Kliyan ki enskri yo (${a.investors.length})</h3>
+    <p class="muted" style="margin:4px 0 8px">Envestisè aktif (ki gen omwen 1 aksyon): <b>${a.active}/${S.maxInv}</b></p>
+    ${a.investors.map(i=>`<div class="row" style="flex-wrap:wrap"><div style="flex:1;min-width:180px"><b>${esc(i.name)}</b>${i.locked?' <span class="tag t-gold">Bloke</span>':''}<div class="muted">ID <b>${esc(i.code)}</b>${i.phone?' · 📞 '+esc(fmtNum(i.phone)):''}${i.email?' · ✉️ '+esc(i.email):''}</div><div class="muted">Enskri ${fd(i.joined)} · ${i.shares?'<b style="color:var(--em)">'+i.shares+' aksyon</b> · envesti '+fm(i.money.invested):'Poko envesti'}</div></div>
+      <div style="text-align:right"><div class="muted">Pare pou peye</div><b style="color:var(--golddk)">${fm(i.money.ready)}</b></div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;width:100%">${i.shares?`<input type="number" min="1" step="1" placeholder="Kantite (G)" id="w-${i.id}" style="max-width:150px;min-height:36px"><select id="wm-${i.id}" style="max-width:130px;min-height:36px;font-size:13px"><option>MonCash</option><option>NatCash</option></select><button class="sm" data-pay="${i.id}">Make retrè peye</button>`:''}<button class="sm" data-pin="${i.id}">Nouvo modpas</button><span class="err" id="we-${i.id}"></span></div></div>`).join('')||'<div class="muted" style="margin:8px 0">Pèsonn poko enskri.</div>'}
+    <h4 style="margin:18px 0 0;font-size:15px">Ajoute yon kliyan ak men w</h4>
+    <div class="f2">
+      <div><label for="iName">Non</label><input id="iName"></div>
+      <div><label for="iTel">Telefòn</label><input id="iTel" type="tel"></div>
+    </div>
+    <div class="err" id="iErr" role="alert"></div>
+    <div style="margin-top:12px"><button class="pri" id="iGo">Ajoute envestisè a</button></div>
+  </div>
+
+  <div class="sec card" id="a-mesaj">
     <h3 style="font-size:18px">Voye yon mesaj bay envestisè yo</h3>
     <div class="f2"><div><label for="mTo">Pou</label><select id="mTo"><option value="">Tout envestisè yo</option>${a.investors.map(i=>`<option value="${i.id}">${esc(i.code)} · ${esc(i.name)}</option>`).join('')}</select></div></div>
     <label for="mTxt">Mesaj</label><input id="mTxt" placeholder="Egz: Twal yo ap rive Bwavena vandredi">
@@ -536,7 +555,7 @@ function renderAdmin(){
     <div style="margin-top:12px"><button class="pri" id="nGo">Ajoute aksyon yo</button></div>
   </div>
 
-  <div class="sec"><h2>Aksyon yo</h2>${a.lots.map(l=>{
+  <div class="sec" id="a-aksyon"><h2>Aksyon yo</h2>${a.lots.map(l=>{
     const tot=l.shares.length,vann=l.shares.filter(s=>s.vann).length,taken=l.shares.filter(s=>s.inv).length;
     return `<details class="card" style="margin-bottom:12px" ${closedLots.has(l.id)?'':'open'} data-lot="${l.id}"><summary><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><span style="font-size:16px">${esc(l.name)} <span class="muted">· ${fm(l.price)} · +${fm(l.profit)}</span></span><span class="muted">${taken}/${tot} achte · ${vann} vann · <span style="color:var(--em)">${closedLots.has(l.id)?'▸ Louvri':'▾ Fèmen'}</span></span></div></summary>
     <div class="f2" style="margin-top:8px"><div><label>Magazen</label><select data-lf="loc" data-l="${l.id}"><option value="">Pou konfime</option>${a.locs.map(x=>`<option ${l.loc===x?'selected':''}>${esc(x)}</option>`).join('')}</select></div>
@@ -550,19 +569,6 @@ function renderAdmin(){
     <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="sm" data-sadd="${l.id}">+ 1 aksyon</button>${taken===0?`<button class="sm dang" data-ldel="${l.id}">Efase atik sa a</button>`:''}</div></details>`}).join('')||'<div class="card muted">Pa gen aksyon.</div>'}</div>
 
   <div class="sec card">
-    <h3 style="font-size:18px">Kont yo (${a.investors.length}) · envestisè aktif: ${a.active}/${S.maxInv}</h3>
-    ${a.investors.map(i=>`<div class="row" style="flex-wrap:wrap"><div style="flex:1;min-width:180px"><b>${esc(i.name)}</b>${i.locked?' <span class="tag t-gold">Bloke</span>':''}<div class="muted">ID <b>${esc(i.code)}</b>${i.phone?' · '+esc(fmtNum(i.phone)):''}${i.email?' · '+esc(i.email):''} · ${i.shares} aksyon</div></div>
-      <div style="text-align:right"><div class="muted">Pare pou peye</div><b style="color:var(--golddk)">${fm(i.money.ready)}</b></div>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;width:100%"><input type="number" min="1" step="1" placeholder="Kantite (G)" id="w-${i.id}" style="max-width:150px;min-height:36px"><select id="wm-${i.id}" style="max-width:130px;min-height:36px;font-size:13px"><option>MonCash</option><option>NatCash</option></select><button class="sm" data-pay="${i.id}">Make retrè peye</button><button class="sm" data-pin="${i.id}">Nouvo modpas</button><span class="err" id="we-${i.id}"></span></div></div>`).join('')||'<div class="muted" style="margin:8px 0">Poko gen envestisè.</div>'}
-    <div class="f2" style="margin-top:10px">
-      <div><label for="iName">Non</label><input id="iName"></div>
-      <div><label for="iTel">Telefòn</label><input id="iTel" type="tel"></div>
-    </div>
-    <div class="err" id="iErr" role="alert"></div>
-    <div style="margin-top:12px"><button class="pri" id="iGo">Ajoute envestisè a</button></div>
-  </div>
-
-  <div class="sec card">
     <h3 style="font-size:18px">SMS otomatik (MonCash / NatCash)</h3>
     <p class="muted">Sou telefòn ki resevwa SMS MonCash ak NatCash yo, mete yon aplikasyon ki voye SMS yo (egz: "SMS Forwarder") sou adrès sa a, an POST. Pa bay pèsonn adrès sa a.</p>
     <div class="code" id="smsUrl">${esc(smsUrl)}</div>
@@ -573,7 +579,7 @@ function renderAdmin(){
     <details style="margin-top:10px"><summary class="muted" style="color:var(--em)">Dènye SMS yo (${a.sms.length})</summary>${a.sms.map(m=>`<div class="row" style="display:block"><div style="font-size:13px">${esc(m.text)}</div><div class="muted">${esc(m.from)} · ${fd(m.at)} · <b>${esc(m.status)}</b>${m.amount?' · '+fm(m.amount):''}${m.note?' · '+esc(m.note):''}</div></div>`).join('')||'<div class="muted">Poko gen SMS.</div>'}</details>
   </div>
 
-  <div class="sec card">
+  <div class="sec card" id="a-param">
     <h3 style="font-size:18px">Paramèt</h3>
     <div class="f2">
       <div><label for="sMax">Kantite envestisè maksimòm</label><input id="sMax" type="number" min="1" step="1" value="${S.maxInv}"></div>
@@ -599,6 +605,7 @@ function bindAdmin(){
   const q=s=>$('adm').querySelectorAll(s);
   $('aOut').onclick=()=>{ls.set('lp_admin',null);A=null;lastOk='';loadAdmin()};
   $('aRef').onclick=()=>loadAdmin();bindPush();
+  q('[data-jump]').forEach(b=>b.onclick=e=>{e.preventDefault();const t=$(b.dataset.jump);if(t)t.scrollIntoView({behavior:'smooth',block:'start'})});
   q('[data-ok]').forEach(b=>b.onclick=async()=>{try{const r=await act('req-approve',{id:b.dataset.ok},b);setOk(okBox(r));await loadAdmin()}catch(e){toast(e.message,true)}});
   q('[data-no]').forEach(b=>b.onclick=async()=>{if(!confirm('Refize demann sa a?'))return;try{await act('req-reject',{id:b.dataset.no},b);loadAdmin()}catch(e){toast(e.message,true)}});
   $('smsTxt').oninput=()=>$('smsErr').textContent='';
