@@ -74,10 +74,56 @@ __HEADER__
 </section>
 
 <section id="v-reglman" class="hidden">
-  <div class="card" style="max-width:720px;margin:0 auto">
-    <h2 style="font-size:24px">Règleman Mr Le Paon Invest</h2>
-    <p class="muted">Règleman yo ap pibliye isit la byento. Pou nenpòt kesyon, ekri Keyn Event sou WhatsApp.</p>
-    <a href="#akey">Retounen nan akèy la</a>
+  <div class="card" style="max-width:760px;margin:0 auto;line-height:1.65">
+    <h2 style="font-size:26px">Règleman Mr Le Paon Invest</h2>
+    <p class="muted">Dènye mizajou: 23 novanm 2026. Li règleman sa yo anvan w envesti. Lè w achte yon aksyon, ou dakò ak yo.</p>
+
+    <h3 style="font-size:18px;margin-top:22px">1. Kisa Mr Le Paon Invest ye</h3>
+    <p>Mr Le Paon Invest se yon pwojè Keyn Event. Ou achte <b>aksyon</b> nan machandiz reyèl Keyn Event achte pou l vann, tankou woulo twal spandex. Yon aksyon = yon inite machandiz (egz: 1 woulo). Ou pa achte yon pati nan konpayi Keyn Event li menm.</p>
+
+    <h3 style="font-size:18px;margin-top:22px">2. Kont ou</h3>
+    <p>Ou kreye kont ou ak non ou, imèl ou oswa nimewo telefòn ou, ak yon modpas ou chwazi. Ou resevwa yon ID envestisè (egz: LP-001). Pa bay pèsonn modpas ou. Keyn Event p ap janm mande w li. Apre 5 move modpas, kont lan bloke pou 15 minit.</p>
+
+    <h3 style="font-size:18px;margin-top:22px">3. Kijan pou achte aksyon</h3>
+    <ul>
+      <li>Chwazi atik la ak kantite aksyon ou vle.</li>
+      <li>Voye total la sou nimewo MonCash oswa NatCash sit la montre ou, epi mete ID tranzaksyon an oswa nimewo ki fè peman an.</li>
+      <li>Aksyon ou yo aktive lè peman an konfime. Yo pa rezève pou ou anvan sa.</li>
+      <li>Pa gen plis pase <b><span class="mInv">10</span> envestisè aktif</b> an menm tan.</li>
+    </ul>
+
+    <h3 style="font-size:18px;margin-top:22px">4. Pri ak benefis</h3>
+    <ul>
+      <li>Chak atik gen yon <b>pri pou chak aksyon</b> ak yon <b>benefis pou chak aksyon ki vann</b>. Yo ekri sou sit la anvan w achte.</li>
+      <li>Ou touche benefis la <b>sèlman lè inite ou finanse a vann</b>. Pa gen benefis k ap monte chak jou.</li>
+      <li>Benefis la <b>pa garanti</b>: li depann de lavant reyèl yo.</li>
+    </ul>
+
+    <h3 style="font-size:18px;margin-top:22px">5. Swiv aksyon ou</h3>
+    <p>Nan kont ou, ou wè chak aksyon ak 3 etap li yo, ak dat chak etap: <b>Achte</b> → <b>Disponib nan biznis lan</b> → <b>Vann</b>. Keyn Event ap enfòme w tou si machandiz la an reta oswa pa disponib.</p>
+
+    <h3 style="font-size:18px;margin-top:22px">6. Lè yon aksyon vann</h3>
+    <ul>
+      <li>Keyn Event make inite ki vann lan. Depi lajan lavant lan antre, kòb ou te mete pou aksyon sa a <b>plis benefis ou</b> tonbe nan kont ou.</li>
+      <li>Ou ka mande retire kòb sa a <b><span class="wDays">8</span> jou apre lavant lan</b>. Keyn Event voye l sou MonCash oswa NatCash ou.</li>
+    </ul>
+
+    <h3 style="font-size:18px;margin-top:22px">7. Si yon atik pa vann</h3>
+    <p>Aksyon an rete aktif jiskaske atik la vann. Pa gen dat limit. Kòb ou rete nan stòk la pandan tan sa a.</p>
+
+    <h3 style="font-size:18px;margin-top:22px">8. Si machandiz la domaje, pèdi oswa yo vòlè l</h3>
+    <p><b>Keyn Event pran pèt la.</b> Ou resevwa tout kòb ou te mete pou aksyon sa a tounen, san benefis.</p>
+
+    <h3 style="font-size:18px;margin-top:22px">9. Si w bezwen kòb ou anvan lavant lan</h3>
+    <p>Ou ka mande Keyn Event remèt ou <b>tout kòb ou te mete</b> pou aksyon ki poko vann yo, san benefis. Ekri Keyn Event sou WhatsApp. Kòb la ap voye ba ou nan <span class="wDays">8</span> jou, epi aksyon sa yo vin disponib pou lòt moun.</p>
+
+    <h3 style="font-size:18px;margin-top:22px">10. Kominikasyon</h3>
+    <p>Keyn Event pale avè w atravè mesaj nan kont ou ak sou WhatsApp <b><span class="waNum">4616 2735</span></b>. Pou nenpòt kesyon oswa pwoblèm, ekri sou nimewo sa a.</p>
+
+    <h3 style="font-size:18px;margin-top:22px">11. Chanjman nan règleman yo</h3>
+    <p>Keyn Event ka mete règleman sa yo ajou. N ap avèti tout envestisè yo anvan. Yon chanjman pa aplike sou aksyon ou deja achte, sòf si ou dakò.</p>
+
+    <p style="margin-top:24px"><a href="#envesti"><button class="pri">Mwen dakò, mwen vle envesti</button></a> <a href="#akey" style="margin-left:10px">Retounen nan akèy la</a></p>
   </div>
 </section>
 
@@ -153,6 +199,7 @@ function route(){
   if(v==='akey'){loadSite();if(h==='envesti')setTimeout(()=>$('envesti').scrollIntoView(),50)}
   if(v==='kont')loadMe();
   if(v==='admin')loadAdmin();
+  if(v==='reglman')loadSite();
   if(!SITE&&v!=='akey')api('site').then(x=>{if(!SITE)SITE=x;$('fWa').textContent=fmtNum(x.wa);$('lWa').href=waLink(x.wa,'Bonjou Keyn Event! Mwen bliye modpas Mr Le Paon Invest mwen.')}).catch(()=>{});
 }
 window.addEventListener('hashchange',route);
@@ -169,6 +216,7 @@ async function loadSite(){
   $('hVann').textContent=S.sold;
   $('fWa').textContent=fmtNum(S.wa);$('lWa').href=waLink(S.wa,'Bonjou Keyn Event! Mwen bliye modpas Mr Le Paon Invest mwen.');
   document.querySelectorAll('.wDays').forEach(x=>x.textContent=S.waitDays);
+  document.querySelectorAll('.mInv').forEach(x=>x.textContent=S.maxInv);document.querySelectorAll('.waNum').forEach(x=>x.textContent=fmtNum(S.wa));
   $('pubLots').innerHTML=S.lots.length?S.lots.map(l=>{
     const pct=l.total?Math.round(l.taken/l.total*100):0,roi=l.price?Math.round(l.profit/l.price*1000)/10:0;
     return `<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div><h3 style="font-size:18px">${esc(l.name)}</h3><div class="muted">${esc(l.detail)}</div></div>${l.free?`<span class="tag t-gold">${l.free} disponib</span>`:`<span class="tag t-gray">Plen</span>`}</div>
