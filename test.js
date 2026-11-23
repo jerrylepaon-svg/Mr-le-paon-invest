@@ -72,3 +72,44 @@ for (let i = 0; i < 4; i++) await err(call('inv-login', { ident: 'LP-002', pin: 
 assert.match(await err(call('inv-login', { ident: 'LP-002', pin: '0000' })), /bloke/);
 const ex = await get('export', {}, at); assert.ok(!JSON.stringify(ex).includes('pinHash'));
 console.log('TOUT TÈS YO PASE');
+// ---- enskripsyon ----
+{
+  const store2 = memoryStore();
+  const c2 = (action, body = {}, token = null) => handle(store2, { method: 'POST', action, body, token, query: {}, ip: '2.2.2.2' });
+  const g2 = (action, token = null) => handle(store2, { method: 'GET', action, body: {}, token, query: {}, ip: '2.2.2.2' });
+  assert.match(await err(c2('register', { name: 'Ti Jo', phone: '3300', pin: '5821' })), /8 chif/);
+  assert.match(await err(c2('register', { name: 'Ti Jo', phone: '33001100', pin: '1111' })), /difisil/);
+  const reg = await c2('register', { name: 'Ti Jo', phone: '33001100', pin: '5821' });
+  assert.equal(reg.code, 'LP-001');
+  assert.match(await err(c2('register', { name: 'Ti Jo', phone: '+509 3300-1100', pin: '5821' })), /deja/);
+  const me0 = await g2('me', reg.token); assert.equal(me0.shares.length, 0);
+  assert.equal((await g2('site')).slotsLeft, 10);
+  const lot = (await g2('site')).lots[0].id;
+  const rq = await c2('request', { name: 'Ti Jo', tel: '33001100', q: 1, lot, pay: 'mc1', from: '33001100' });
+  const { token: at2 } = await c2('login', { password: 'test' });
+  const ap = await c2('req-approve', { id: rq.id }, at2);
+  assert.equal(ap.code, 'LP-001'); assert.equal(ap.pin, '');
+  const li = await c2('inv-login', { ident: 'LP-001', pin: '5821' }); assert.ok(li.token);
+  assert.equal((await g2('me', li.token)).shares.length, 1);
+  assert.equal((await g2('site')).slotsLeft, 9);
+}
+console.log('TÈS ENSKRIPSYON YO PASE');
+// ---- imèl ----
+{
+  const s3 = memoryStore();
+  const c3 = (action, body = {}, token = null) => handle(s3, { method: 'POST', action, body, token, query: {}, ip: '3.3.3.3' });
+  const g3 = (action, token = null) => handle(s3, { method: 'GET', action, body: {}, token, query: {}, ip: '3.3.3.3' });
+  assert.match(await err(c3('register', { name: 'Lou Lou', pin: '5821' })), /imèl/);
+  assert.match(await err(c3('register', { name: 'Lou Lou', email: 'pa-bon', pin: '5821' })), /Imèl/);
+  const r = await c3('register', { name: 'Lou Lou', email: 'Lou@Gmail.com', pin: '5821' });
+  assert.match(await err(c3('register', { name: 'X Y', email: 'lou@gmail.com', pin: '5821' })), /deja/);
+  assert.ok((await c3('inv-login', { ident: 'LOU@gmail.com', pin: '5821' })).token);
+  // kont imèl sèlman envesti: menm kont lan resevwa aksyon yo
+  const lot = (await g3('site')).lots[0].id;
+  const rq = await c3('request', { name: 'Lou Lou', tel: '36665544', q: 1, lot, pay: 'mc1', from: '36665544' }, r.token);
+  const { token: at3 } = await c3('login', { password: 'test' });
+  const ap = await c3('req-approve', { id: rq.id }, at3); assert.equal(ap.code, r.code);
+  const me = await g3('me', r.token); assert.equal(me.shares.length, 1); assert.equal(me.investor.phone, '36665544');
+  assert.ok((await c3('inv-login', { ident: '3666 5544', pin: '5821' })).token);
+}
+console.log('TÈS IMÈL YO PASE');

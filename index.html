@@ -111,6 +111,7 @@ textarea{width:100%;border:1px solid #CBD3D0;border-radius:10px;padding:10px;fon
     <div class="hero" id="hero">
       <h1>Envesti nan machandiz reyèl. Touche lè yo vann.</h1>
       <p>Achte aksyon nan stòk Keyn Event. Chak fwa yon atik ou finanse vann, kòb ou ak benefis ou tonbe nan kont ou.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px"><a href="#envesti"><button class="gold">Envesti kounye a</button></a><a href="?reg=1#kont"><button style="background:transparent;color:#fff;border-color:rgba(255,255,255,.5)">Kreye yon kont</button></a></div>
       <div class="stats">
         <div class="stat"><small>Plas envestisè ki rete</small><b id="hPlas">–</b></div>
         <div class="stat"><small>Aksyon disponib</small><b id="hDispo">–</b></div>
@@ -179,13 +180,28 @@ textarea{width:100%;border:1px solid #CBD3D0;border-radius:10px;padding:10px;fon
 
 <section id="v-kont" class="hidden">
   <div id="loginBox" class="card" style="max-width:420px;margin:0 auto">
+    <div style="display:flex;gap:6px;margin-bottom:14px" role="tablist"><button class="sm" id="tLog" role="tab" aria-selected="true" style="flex:1;background:var(--mint);border-color:#9FC9BA">Konekte</button><button class="sm" id="tReg" role="tab" aria-selected="false" style="flex:1">Kreye yon kont</button></div>
+    <div id="logPane">
     <h2 style="font-size:22px">Konekte nan kont ou</h2>
-    <p class="muted">Mete nimewo telefòn ou <b>oswa</b> ID envestisè ou (egz: LP-001), ak kòd PIN Keyn Event te ba ou a.</p>
-    <label for="lId">Nimewo telefòn <span style="font-weight:400;color:var(--mut)">oswa</span> ID envestisè</label><input id="lId" autocomplete="username" placeholder="Egz: 3700 1122 oswa LP-001">
+    <p class="muted">Mete nimewo telefòn ou, imèl ou <b>oswa</b> ID envestisè ou (egz: LP-001), ak kòd PIN ou.</p>
+    <label for="lId">Telefòn, imèl <span style="font-weight:400;color:var(--mut)">oswa</span> ID envestisè</label><input id="lId" autocomplete="username" placeholder="Egz: 3700 1122, non@gmail.com oswa LP-001">
     <label for="lPin">Kòd PIN</label><input id="lPin" type="password" inputmode="numeric" autocomplete="current-password">
     <div class="err" id="lErr" role="alert"></div>
     <div style="margin-top:14px"><button class="pri" id="lGo">Konekte</button></div>
     <div class="muted" style="margin-top:14px">Ou bliye PIN ou? Ekri Keyn Event sou <a id="lWa" target="_blank" rel="noopener">WhatsApp</a>.</div>
+    </div>
+    <div id="regPane" class="hidden">
+      <h2 style="font-size:22px">Kreye kont ou</h2>
+      <p class="muted">Kreye kont ou kounye a, epi envesti lè w pare. W ap resevwa yon ID envestisè (egz: LP-004).</p>
+      <label for="rName">Non konplè ou</label><input id="rName" autocomplete="name">
+      <p class="muted" style="margin:10px 0 0">Mete imèl ou, nimewo telefòn ou, oswa toude.</p>
+      <label for="rMail">Imèl ou</label><input id="rMail" type="email" autocomplete="email" placeholder="Egz: non@gmail.com">
+      <label for="rTel">Nimewo telefòn ou</label><input id="rTel" type="tel" autocomplete="tel" placeholder="Egz: 3700 1122">
+      <label for="rPin">Chwazi yon kòd PIN (4 a 6 chif)</label><input id="rPin" type="password" inputmode="numeric" autocomplete="new-password">
+      <label for="rPin2">Ekri PIN lan ankò</label><input id="rPin2" type="password" inputmode="numeric" autocomplete="new-password">
+      <div class="err" id="rErr" role="alert"></div>
+      <div style="margin-top:14px"><button class="pri" id="rGo">Kreye kont mwen</button></div>
+    </div>
   </div>
   <div id="acct" class="hidden"></div>
 </section>
@@ -200,7 +216,7 @@ textarea{width:100%;border:1px solid #CBD3D0;border-radius:10px;padding:10px;fon
   <div id="adm" class="hidden"></div>
 </section>
 </main>
-<footer>Mr Le Paon Invest · yon pwojè Keyn Event · WhatsApp <span id="fWa"></span><br><a href="#reglman">Règleman</a> · <a href="#admin">Admin</a></footer>
+<footer>Mr Le Paon Invest · yon pwojè Keyn Event · WhatsApp <span id="fWa"></span><br><a href="?reg=1#kont">Kreye yon kont</a> · <a href="#reglman">Règleman</a> · <a href="#admin">Admin</a></footer>
 
 <script>
 (function(){
@@ -239,7 +255,8 @@ function route(){
 window.addEventListener('hashchange',route);
 
 /* ---------------- piblik ---------------- */
-let SITE=null,payId=null;
+let SITE=null,payId=null,ME=null;
+function prefill(){if(!ME)return;if(!$('eNon').value)$('eNon').value=ME.name;if(!$('eTel').value)$('eTel').value=ME.phone}
 function statBox(l){if(!l.status||l.status==='ok')return l.note?`<div class="ok" style="margin-top:10px">${esc(l.note)}</div>`:'';return `<div class="note" style="margin-top:10px;background:${l.status==='out'?'#FDECEA':'var(--goldbg)'};color:${l.status==='out'?'#8A1C12':'var(--golddk)'}"><b>${esc(l.statusText)}</b>${l.note?'<br>'+esc(l.note):''}</div>`}
 async function loadSite(){
   try{SITE=await api('site')}catch(e){$('pubLots').innerHTML=`<div class="card err">${esc(e.message)}</div>`;return}
@@ -261,6 +278,7 @@ async function loadSite(){
   sel.innerHTML=S.lots.filter(l=>l.free).map(l=>`<option value="${l.id}">${esc(l.name)} · ${fm(l.price)}</option>`).join('')||'<option value="">Pa gen atik disponib</option>';
   if(prev&&[...sel.options].some(o=>o.value===prev))sel.value=prev;
   calcE();resumeWait();
+  if(!ME&&ls.get('lp_inv'))api('me',null,ls.get('lp_inv')).then(d=>{ME=d.investor;prefill()}).catch(()=>{});else prefill();
 }
 function refreshLots(){loadSite()}
 function curLot(){return SITE&&SITE.lots.find(x=>x.id===$('eLot').value)}
@@ -293,7 +311,7 @@ $('eGo').addEventListener('click',async()=>{
   if(from&&!d8(from)){err.textContent='Nimewo ki fè peman an dwe gen 8 chif.';return}
   busy($('eGo'),true,'Ap voye…');
   try{
-    const r=await api('request',{name:$('eNon').value.trim(),tel:$('eTel').value.trim(),q,lot:l.id,pay:payId,txid:tx,from});
+    const r=await api('request',{name:$('eNon').value.trim(),tel:$('eTel').value.trim(),q,lot:l.id,pay:payId,txid:tx,from},ls.get('lp_inv'));
     ls.set('lp_wait',JSON.stringify({id:r.id,ck:r.ck,lot:l.name,q,amount:q*l.price,tel:$('eTel').value.trim()}));
     $('eTx').value='';$('eFrom').value='';
     showWait(r);
@@ -336,11 +354,11 @@ async function loadMe(){
   if(!t){$('loginBox').classList.remove('hidden');$('acct').classList.add('hidden');if(!SITE)loadSite();return}
   $('acct').innerHTML='<div class="card muted"><span class="spin"></span>Ap chaje kont ou…</div>';$('acct').classList.remove('hidden');$('loginBox').classList.add('hidden');
   let d;try{d=await api('me',null,t)}catch(e){if(e.status===401){ls.set('lp_inv',null);return loadMe()}$('acct').innerHTML=`<div class="card err">${esc(e.message)}</div>`;return}
-  const m=d.money,inv=d.investor;
+  const m=d.money,inv=d.investor;ME=inv;prefill();
   const msg=`Bonjou Keyn Event! Se ${inv.name} (envestisè Mr Le Paon Invest, ID ${inv.code}). Mwen vle retire ${fm(m.ready)}.`;
   const alerts=d.shares.filter(s=>!s.vann&&s.status&&s.status!=='ok');const seen=new Set();
   $('acct').innerHTML=`
-  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px"><div><div class="muted">Envestisè · ID <b>${esc(inv.code)}</b></div><h2 style="font-size:24px">${esc(inv.name)}</h2></div><button class="sm" id="lOut">Dekonekte</button></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px"><div><div class="muted">Envestisè · ID <b>${esc(inv.code)}</b>${inv.email?' · '+esc(inv.email):''}</div><h2 style="font-size:24px">${esc(inv.name)}</h2></div><div style="display:flex;gap:8px"><a href="#envesti"><button class="sm pri">Envesti</button></a><button class="sm" id="lOut">Dekonekte</button></div></div>
   <div class="kv sec">
     <div class="card" style="background:var(--deep);color:#fff;border:0"><small style="color:var(--mint2)">Disponib pou retire</small><b style="color:#fff">${fm(m.ready)}</b></div>
     <div class="card"><small>Ap vin disponib</small><b>${fm(m.pending)}</b>${m.next?`<div class="muted">Depi ${fd(m.next)}</div>`:''}</div>
@@ -354,17 +372,32 @@ async function loadMe(){
   <div class="sec"><h2>Aksyon mwen yo (${d.shares.length})</h2><div class="grid">${d.shares.length?d.shares.map(s=>{
     const st=[['Twal la achte',s.achte],['Nan magazen',s.dispo],['Vann',s.vann]];
     return `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px"><div><b>${esc(s.lot)}</b><div class="muted">Aksyon #${s.n} · ${fm(s.price)}${s.dispo&&s.loc?' · '+esc(s.loc):''}</div></div>${s.vann?`<span class="tag t-mint">+${fm(s.profit)}</span>`:`<span class="tag t-gray">An kou</span>`}</div>
-    <div class="tl">${st.map(x=>`<div class="st ${x[1]?'done':''}"><div class="dot"></div>${x[0]}<br>${x[1]?fd(x[1]):'–'}</div>`).join('')}</div>${s.vann?'':statBox(s)}</div>`}).join(''):'<div class="card muted">Ou poko gen aksyon.</div>'}</div></div>
+    <div class="tl">${st.map(x=>`<div class="st ${x[1]?'done':''}"><div class="dot"></div>${x[0]}<br>${x[1]?fd(x[1]):'–'}</div>`).join('')}</div>${s.vann?'':statBox(s)}</div>`}).join(''):`<div class="card"><b>Ou poko gen aksyon.</b><p class="muted">Chwazi yon atik epi achte premye aksyon ou.</p><a href="#envesti"><button class="pri">Envesti kounye a</button></a></div>`}</div></div>
   <div class="sec"><h2>Istorik</h2><div class="card">${d.history.length?d.history.map(h=>`<div class="row"><div>${esc(h.t)}<div class="muted">${fd(h.d)}</div></div><span class="money ${h.k==='in'?'plus':''}">${h.a>0?'+':'−'}${fm(Math.abs(h.a))}</span></div>`).join(''):'<div class="muted">Poko gen anyen.</div>'}</div></div>`;
-  $('lOut').onclick=()=>{ls.set('lp_inv',null);loadMe()};
+  $('lOut').onclick=()=>{ls.set('lp_inv',null);ME=null;loadMe()};
 }
 $('lGo').addEventListener('click',async()=>{
   const ident=$('lId').value.trim(),pin=$('lPin').value.trim();
-  if(!ident||!pin){$('lErr').textContent='Mete telefòn ou oswa ID ou, ak kòd PIN ou.';return}
+  if(!ident||!pin){$('lErr').textContent='Mete telefòn ou, imèl ou oswa ID ou, ak kòd PIN ou.';return}
   busy($('lGo'),true);
   try{const r=await api('inv-login',{ident,pin});ls.set('lp_inv',r.token);$('lId').value=$('lPin').value='';loadMe()}catch(e){$('lErr').textContent=e.message}finally{busy($('lGo'),false)}
 });
 ['lId','lPin'].forEach(id=>$(id).addEventListener('input',()=>$('lErr').textContent=''));
+function tab(reg){$('logPane').classList.toggle('hidden',reg);$('regPane').classList.toggle('hidden',!reg);[[$('tLog'),!reg],[$('tReg'),reg]].forEach(([b,on])=>{b.setAttribute('aria-selected',on);b.style.background=on?'var(--mint)':'';b.style.borderColor=on?'#9FC9BA':''})}
+$('tLog').onclick=()=>tab(false);$('tReg').onclick=()=>tab(true);
+['rName','rMail','rTel','rPin','rPin2'].forEach(id=>$(id).addEventListener('input',()=>$('rErr').textContent=''));
+$('rGo').addEventListener('click',async()=>{
+  const e=$('rErr'),name=$('rName').value.trim(),phone=$('rTel').value.trim(),email=$('rMail').value.trim(),pin=$('rPin').value.trim();
+  if(name.length<3){e.textContent='Mete non konplè ou.';return}
+  if(!phone&&!email){e.textContent='Mete imèl ou oswa nimewo telefòn ou (oswa toude).';return}
+  if(phone&&!d8(phone)){e.textContent='Nimewo telefòn lan dwe gen 8 chif.';return}
+  if(email&&!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)){e.textContent='Imèl la pa bon.';return}
+  if(!/^\d{4,6}$/.test(pin)){e.textContent='Kòd PIN lan dwe gen 4 a 6 chif.';return}
+  if(pin!==$('rPin2').value.trim()){e.textContent='De PIN yo pa menm. Ekri yo ankò.';return}
+  busy($('rGo'),true,'Ap kreye…');
+  try{const r=await api('register',{name,phone,email,pin});ls.set('lp_inv',r.token);['rName','rMail','rTel','rPin','rPin2'].forEach(id=>$(id).value='');toast('Kont ou kreye! ID ou se '+r.code+'.');loadMe()}catch(x){e.textContent=x.message}finally{busy($('rGo'),false)}
+});
+if(/reg/.test(location.search))tab(true);
 $('lPin').addEventListener('keydown',e=>{if(e.key==='Enter')$('lGo').click()});
 
 /* ---------------- admin ---------------- */
@@ -444,8 +477,8 @@ function renderAdmin(){
     <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="sm" data-sadd="${l.id}">+ 1 aksyon</button>${taken===0?`<button class="sm dang" data-ldel="${l.id}">Efase atik sa a</button>`:''}</div></details>`}).join('')||'<div class="card muted">Pa gen aksyon.</div>'}</div>
 
   <div class="sec card">
-    <h3 style="font-size:18px">Envestisè yo (${a.investors.length}/${S.maxInv})</h3>
-    ${a.investors.map(i=>`<div class="row" style="flex-wrap:wrap"><div style="flex:1;min-width:180px"><b>${esc(i.name)}</b>${i.locked?' <span class="tag t-gold">Bloke</span>':''}<div class="muted">ID <b>${esc(i.code)}</b> · ${esc(fmtNum(i.phone))} · ${i.shares} aksyon</div></div>
+    <h3 style="font-size:18px">Kont yo (${a.investors.length}) · envestisè aktif: ${a.active}/${S.maxInv}</h3>
+    ${a.investors.map(i=>`<div class="row" style="flex-wrap:wrap"><div style="flex:1;min-width:180px"><b>${esc(i.name)}</b>${i.locked?' <span class="tag t-gold">Bloke</span>':''}<div class="muted">ID <b>${esc(i.code)}</b>${i.phone?' · '+esc(fmtNum(i.phone)):''}${i.email?' · '+esc(i.email):''} · ${i.shares} aksyon</div></div>
       <div style="text-align:right"><div class="muted">Pare pou peye</div><b style="color:var(--golddk)">${fm(i.money.ready)}</b></div>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;width:100%"><input type="number" min="1" step="1" placeholder="Kantite (G)" id="w-${i.id}" style="max-width:150px;min-height:36px"><select id="wm-${i.id}" style="max-width:130px;min-height:36px;font-size:13px"><option>MonCash</option><option>NatCash</option></select><button class="sm" data-pay="${i.id}">Make retrè peye</button><button class="sm" data-pin="${i.id}">Nouvo PIN</button><span class="err" id="we-${i.id}"></span></div></div>`).join('')||'<div class="muted" style="margin:8px 0">Poko gen envestisè.</div>'}
     <div class="f2" style="margin-top:10px">
