@@ -211,3 +211,43 @@ console.log('TÈS NOTIFIKASYON YO PASE');
   globalThis.fetch = realFetch;
 }
 console.log('TÈS OTOSOL YO PASE');
+// ---- bous ak jou Otosol ----
+{
+  const s8 = memoryStore();
+  const c8 = (action, body = {}, token = null, query = {}) => handle(s8, { method: 'POST', action, body, token, query, ip: '8.8.8.8' });
+  const g8 = (action, token = null) => handle(s8, { method: 'GET', action, body: {}, token, query: {}, ip: '8.8.8.8' });
+  const { token: a8 } = await c8('login', { password: 'test' });
+  const reg = await c8('register', { name: 'Bous Moun', phone: '35551111', pin: 'bon-modpas' });
+  assert.match(await err(c8('deposit', { amount: 30000, pay: 'mc1' }, reg.token)), /ID tranzaksyon/);
+  const dep = await c8('deposit', { amount: 30000, pay: 'mc1', from: '35551111' }, reg.token);
+  assert.equal(dep.status, 'pending');
+  let me = await g8('me', reg.token); assert.equal(me.money.ready, 0); assert.equal(me.money.walletPending, 30000);
+  const ad = await g8('admin-data', a8); const k = ad.smsKey;
+  const sm = await c8('sms-in', { from: 'MonCash', text: 'You have received G30,000.00 with MonCash from 50935551111 . Txn ID: 5554443332' }, null, { k });
+  assert.equal(sm.matched, true);
+  me = await g8('me', reg.token); assert.equal(me.money.ready, 30000);
+  // achte ak bous
+  assert.match(await err(c8('request', { name: 'x', tel: '35551111', q: 2, lot: 'l1', pay: 'bous' }, reg.token)), /manke/);
+  const r = await c8('request', { name: 'x', tel: '35551111', q: 1, lot: 'l1', pay: 'bous' }, reg.token);
+  assert.equal(r.status, 'approved');
+  me = await g8('me', reg.token); assert.equal(me.money.ready, 2500); assert.equal(me.shares.length, 1);
+  // depo admin apwouve
+  await c8('deposit', { amount: 5000, pay: 'nc1', txid: 'NCX12345' }, reg.token);
+  const ad2 = await g8('admin-data', a8); assert.equal(ad2.deposits.length, 1);
+  await c8('dep-approve', { id: ad2.deposits[0].id }, a8);
+  me = await g8('me', reg.token); assert.equal(me.money.ready, 7500);
+  // jou Otosol
+  const realFetch = globalThis.fetch; const got = [];
+  globalThis.fetch = async (url, o) => { const b = JSON.parse(o.body); got.push(b.action);
+    if (b.action === 'lepaon_days') return Response.json({ name: 'Bous Moun', challenge: { amount: 100, days: [3, 4, 5, 6].map((d) => ({ day: d, cost: 100 * d })) } });
+    if (b.action === 'lepaon_pay') { const days = [3, 4, 5, 6].slice(0, b.n); const cost = days.reduce((a, d) => a + d * 100, 0); if (cost > b.max) return Response.json({ error: 'twòp' }, { status: 400 }); return Response.json({ ok: true, days, cost }); }
+    return Response.json({ ok: true }); };
+  await c8('settings', { ...ad2.settings, otosolOn: true, otosolKey: 'K'.repeat(48) }, a8);
+  const dd = await c8('otosol-days', { otosolPhone: '35551111', otosolPin: '123456' }, reg.token);
+  assert.equal(dd.can, 4); assert.equal(dd.cost, 1800);
+  const pd = await c8('otosol-pay-days', { otosolPhone: '35551111', otosolPin: '123456', n: 3 }, reg.token);
+  assert.deepEqual(pd.days, [3, 4, 5]); assert.equal(pd.left, 6300);
+  me = await g8('me', reg.token); assert.equal(me.money.ready, 6300);
+  globalThis.fetch = realFetch;
+}
+console.log('TÈS BOUS YO PASE');
