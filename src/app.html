@@ -485,18 +485,20 @@ function renderAdmin(){
     <a href="#" data-jump="a-kliyan" class="card" style="text-decoration:none;color:inherit;border:2px solid #9FC9BA"><small>Kliyan ki enskri</small><b>${a.investors.length}</b></a>
   </div>
   <nav aria-label="Seksyon admin" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
-    ${[['a-demann','Demann ('+a.requests.length+')'],['a-kliyan','Kliyan ('+a.investors.length+')'],['a-mesaj','Mesaj'],['a-aksyon','Aksyon yo'],['a-param','Paramèt']].map(([id,t])=>`<button class="sm" data-jump="${id}">${t}</button>`).join('')}
+    ${[['a-demann','Demann ('+a.requests.length+')'],['a-aktiv','Aktivasyon'],['a-kliyan','Kliyan ('+a.investors.length+')'],['a-mesaj','Mesaj'],['a-aksyon','Aksyon yo'],['a-param','Paramèt']].map(([id,t])=>`<button class="sm" data-jump="${id}">${t}</button>`).join('')}
   </nav>
   <div id="okZone">${lastOk}</div>
+  <div class="sec card" id="a-aktiv" style="border:2px solid #9FC9BA">
+    <h3 style="font-size:20px">✅ Dènye aktivasyon yo (${(a.recentApproved||[]).length})</h3>
+    <p class="muted" style="margin:4px 0 6px">Si w aktive yon moun pa erè, peze <b>"Anile aktivasyon an"</b> bò kote non li.</p>
+    ${(a.recentApproved||[]).map(r=>`<div class="row" style="flex-wrap:wrap"><div style="flex:1;min-width:200px"><b>${esc(r.invName)}</b>${r.code?' · '+esc(r.code):''} · ${r.q} aksyon · ${fm(r.amount)}<div class="muted">${esc(r.lotName)} · ${esc(r.method)} · ${fd(r.date)}${r.rule&&r.rule!=='admin'?' · otomatik':''}</div></div>${r.sold?'<span class="tag t-gray">Deja vann</span>':`<button class="sm dang" data-cancel="${r.id}" data-rpay="${esc(r.pay||'')}" data-nm="${esc(r.invName)}">Anile aktivasyon an</button>`}</div>`).join('')||'<div class="muted">Pa gen aktivasyon.</div>'}
+  </div>
   ${pushBox('admin')}
 
   <div class="sec card" id="a-demann">
     <h3 style="font-size:18px">Demann envestisman k ap tann (${a.requests.length})</h3>
     <p class="muted" style="margin:6px 0 4px">Demann yo aktive otomatikman lè SMS MonCash oswa NatCash la koresponn ak ID tranzaksyon an, oswa ak nimewo ki peye a plis montan an. Sa ki rete la yo, tcheke yo ak men w.</p>
     ${a.requests.map(r=>`<div class="row" style="flex-wrap:wrap"><div style="flex:1;min-width:200px"><b>${esc(r.name)}</b> · ${esc(fmtNum(r.tel))}<div class="muted">${r.q} aksyon · ${esc(r.lotName)} · ${fm(r.amount)}</div><div class="muted">Peye sou ${esc(r.method)}${r.txid?' · ID: <b>'+esc(r.txid)+'</b>':''}${r.from?' · soti nan <b>'+esc(fmtNum(r.from))+'</b>':''} · ${fd(r.date)}</div></div><div style="display:flex;gap:6px"><button class="sm pri" data-ok="${r.id}">Apwouve</button><button class="sm dang" data-no="${r.id}">Refize</button></div></div>`).join('')||'<div class="muted" style="margin-top:8px">Pa gen demann k ap tann.</div>'}
-    <details style="margin-top:14px"><summary style="cursor:pointer;font-weight:600">✅ Dènye aktivasyon yo (${(a.recentApproved||[]).length}) · anile youn si w fè yon erè</summary>
-    ${(a.recentApproved||[]).map(r=>`<div class="row" style="flex-wrap:wrap"><div style="flex:1;min-width:200px"><b>${esc(r.invName)}</b>${r.code?' · '+esc(r.code):''} · ${r.q} aksyon · ${fm(r.amount)}<div class="muted">${esc(r.lotName)} · ${esc(r.method)} · ${fd(r.date)}${r.rule&&r.rule!=='admin'?' · otomatik':''}</div></div>${r.sold?'<span class="tag t-gray">Deja vann</span>':`<button class="sm dang" data-cancel="${r.id}" data-rpay="${esc(r.pay||'')}" data-nm="${esc(r.invName)}">Anile aktivasyon an</button>`}</div>`).join('')||'<div class="muted">Pa gen aktivasyon.</div>'}
-    </details>
     <h4 style="margin:16px 0 4px;font-size:15px">👛 Depo nan bous k ap tann (${(a.deposits||[]).length})</h4>
     ${(a.deposits||[]).map(d=>`<div class="row" style="flex-wrap:wrap"><div style="flex:1;min-width:200px"><b>${esc(d.name)}</b> · ${fm(d.amount)}<div class="muted">Peye sou ${esc(d.method)}${d.txid?' · ID: <b>'+esc(d.txid)+'</b>':''}${d.from?' · soti nan <b>'+esc(fmtNum(d.from))+'</b>':''} · ${fd(d.date)}</div></div><div style="display:flex;gap:6px"><button class="sm pri" data-dok="${d.id}">Apwouve</button><button class="sm dang" data-dno="${d.id}">Refize</button></div></div>`).join('')||'<div class="muted">Pa gen depo k ap tann.</div>'}
     <label for="smsTxt">Kole yon SMS konfimasyon (si telefòn nan poko voye l poukont li)</label><textarea id="smsTxt" rows="3" placeholder="Egz: You have received G27,500.00 with MonCash from 50937001122 . Txn ID: 1234567890"></textarea>
