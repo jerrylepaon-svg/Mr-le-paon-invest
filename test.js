@@ -338,3 +338,22 @@ console.log('TÈS LOJIK JERRY A PASE');
   assert.match(await err(c('wallet-take', { inv, amount: 1 }, at)), /sèlman/);
 }
 console.log('TÈS RETIRE NAN BOUS YO PASE');
+// ---- total nan machandiz ----
+{
+  const s13 = memoryStore();
+  const c = (action, body = {}, token = null) => handle(s13, { method: 'POST', action, body, token, query: {}, ip: '13.0.0.1' });
+  const g = (action, token = null) => handle(s13, { method: 'GET', action, body: {}, token, query: {}, ip: '13.0.0.1' });
+  const { token: at } = await c('login', { password: 'test' });
+  const ad0 = await g('admin-data', at); await c('settings', { ...ad0.settings, waitDays: 0 }, at);
+  await c('lot-add', { name: 'Fouwo', qty: 10, price: 6000, profit: 750 }, at);
+  const lot2 = (await g('admin-data', at)).lots[1].id;
+  const reg = await c('register', { name: 'C', phone: '32225555', pin: 'bon-modpas' });
+  const r1 = await c('request', { name: 'C', tel: '32225555', q: 1, lot: 'l1', pay: 'mc1', from: '32225555' }, reg.token);
+  await c('req-approve', { id: r1.id }, at); await c('share-step', { lot: 'l1', i: 0, step: 'vann', on: true }, at);
+  await c('request', { name: 'C', tel: '32225555', q: 4, lot: lot2, pay: 'bous' }, reg.token);
+  const inv = (await g('admin-data', at)).investors[0].id;
+  await c('withdraw', { inv, amount: 11000 }, at);
+  const t = (await g('admin-data', at)).totals;
+  assert.equal(t.stock, 24000); assert.equal(t.owed, 0); assert.equal(t.paid, 11000);
+}
+console.log('TÈS TOTAL YO PASE');
