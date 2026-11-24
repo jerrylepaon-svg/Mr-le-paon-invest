@@ -613,15 +613,19 @@ if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.ser
 const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 
 let deferred=null;
-function showInst(){if(standalone||ls.get('lp_inst_no')==='1')return;$('instBox').classList.remove('hidden');$('instBox').style.display='flex'}
+if(standalone)ls.set('lp_installed','1');
+const installed=()=>standalone||ls.get('lp_installed')==='1';
+function showInst(){if(installed()||ls.get('lp_inst_no')==='1')return;$('instBox').classList.remove('hidden');$('instBox').style.display='flex'}
 function hideInst(){$('instBox').classList.add('hidden');$('instBox').style.display='none'}
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;showInst()});
-window.addEventListener('appinstalled',()=>{hideInst();toast('Aplikasyon an enstale sou telefòn ou!')});
-if(!standalone&&(isIOS||/android/i.test(ua)))setTimeout(()=>{if(!deferred)showInst()},2500);
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;ls.set('lp_installed',null);showInst()});
+window.addEventListener('appinstalled',()=>{ls.set('lp_installed','1');hideInst();toast('Aplikasyon an enstale sou telefòn ou!')});
+/* Sou Android, si Chrome pa ofri enstalasyon an, souvan se paske app la deja enstale: nou pa montre kare a. Sou iPhone pa gen mwayen konnen, kidonk nou montre l (moun nan ka peze "Pita"). */
+if(navigator.getInstalledRelatedApps)navigator.getInstalledRelatedApps().then(l=>{if(l&&l.length){ls.set('lp_installed','1');hideInst()}}).catch(()=>{});
+if(!installed()&&isIOS)setTimeout(()=>{if(!deferred)showInst()},2500);
 $('instGo').onclick=async()=>{
-  if(deferred){deferred.prompt();const r=await deferred.userChoice;deferred=null;if(r.outcome==='accepted')hideInst();return}
+  if(deferred){deferred.prompt();const r=await deferred.userChoice;deferred=null;if(r.outcome==='accepted'){ls.set('lp_installed','1');hideInst()}return}
   $('instTxt').innerHTML=isIOS
-    ?'Sou iPhone: louvri sit la nan <b>Safari</b>, peze bouton <b>Pataje</b> (kare ak flèch anlè a), epi chwazi <b>"Sur l\'écran d\'accueil" / "Add to Home Screen"</b>.'
+    ?'Sou iPhone: louvri sit la nan <b>Safari</b>, peze bouton <b>Pataje</b> (kare ak flèch anlè a), epi chwazi <b>"Sur l\'écran d\'accueil" / "Add to Home Screen"</b>. Lè w fini, peze <b>"Pita"</b> pou kare sa a pa parèt ankò.'
     :'Peze <b>⋮</b> (twa pwen anwo a dwat) nan Chrome, epi chwazi <b>"Ajouter à l\'écran d\'accueil"</b> oswa <b>"Installer l\'application"</b>.';
 };
 $('instNo').onclick=()=>{ls.set('lp_inst_no','1');hideInst()};
