@@ -563,34 +563,31 @@ function renderAdmin(){
     </tbody></table></div>
     <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="sm" data-sadd="${l.id}">+ 1 aksyon</button>${taken===0?`<button class="sm dang" data-ldel="${l.id}">Efase atik sa a</button>`:''}</div></details>`}).join('')||'<div class="card muted">Pa gen aksyon.</div>'}</div>
 
-  <div class="sec card">
-    <h3 style="font-size:18px">SMS otomatik (MonCash / NatCash)</h3>
-    <p class="muted">Sou telefòn ki resevwa SMS MonCash ak NatCash yo, mete yon aplikasyon ki voye SMS yo (egz: "SMS Forwarder") sou adrès sa a, an POST. Pa bay pèsonn adrès sa a.</p>
-    <div class="code" id="smsUrl">${esc(smsUrl)}</div>
-    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button class="sm" id="smsCopy">Kopye adrès la</button><button class="sm dang" id="smsNew">Chanje kle a</button></div>
-    <label style="display:flex;align-items:center;gap:8px;font-weight:500;margin-top:12px"><input type="checkbox" id="sSms" ${S.smsOn?'checked':''} style="width:auto;min-height:0"> Aktive validasyon otomatik la</label>
-    <label for="sTrust">Non moun ki voye SMS yo (separe ak vigil)</label><input id="sTrust" value="${esc(S.smsTrusted||'')}">
-    <div class="muted">Yon SMS ki soti nan yon nimewo telefòn òdinè make "sispèk" epi li pa aktive anyen.</div>
-    <details style="margin-top:10px"><summary class="muted" style="color:var(--em)">Dènye SMS yo (${a.sms.length})</summary>${a.sms.map(m=>`<div class="row" style="display:block"><div style="font-size:13px">${esc(m.text)}</div><div class="muted">${esc(m.from)} · ${fd(m.at)} · <b>${esc(m.status)}</b>${m.amount?' · '+fm(m.amount):''}${m.note?' · '+esc(m.note):''}</div></div>`).join('')||'<div class="muted">Poko gen SMS.</div>'}</details>
-  </div>
-
   <div class="sec card" id="a-param">
-    <h3 style="font-size:18px">Paramèt</h3>
+    <h3 style="font-size:18px">⚙️ Paramèt</h3>
     <div class="f2">
-      <div><label for="sMax">Kantite envestisè maksimòm</label><input id="sMax" type="number" min="1" step="1" value="${S.maxInv}"></div>
-      <div><label for="sWait">Jou pou tann anvan retrè</label><input id="sWait" type="number" min="0" step="1" value="${S.waitDays}"></div>
+      <div><label for="sMax">Maksimòm envestisè</label><input id="sMax" type="number" min="1" step="1" value="${S.maxInv}"></div>
+      <div><label for="sWait">Jou anvan retrè</label><input id="sWait" type="number" min="0" step="1" value="${S.waitDays}"></div>
       <div><label for="sWa">WhatsApp</label><input id="sWa" value="${esc(S.wa)}"></div>
     </div>
-    <h4 style="margin:16px 0 4px;font-size:15px">Mwayen peman</h4>
-    <div class="muted">Envestisè yo wè nimewo a ak non an, epi yo mete ID tranzaksyon an oswa nimewo ki peye a.</div>
-    <div id="payEd">${S.pays.map((m,i)=>payRow(m,i)).join('')}</div>
-    <button class="sm" id="pAdd" style="margin-top:10px">+ Ajoute yon mwayen peman</button>
-    <h4 style="margin:18px 0 4px;font-size:15px">💰 Peye ak kont Otosol</h4>
-    <div class="muted">Kliyan Otosol yo ka achte aksyon ak lajan lib yo sou otosol.online. Kopye kle a nan <b>admin Otosol → "🦚 Koneksyon ak Mr Le Paon Invest"</b>, epi kole l isit la.</div>
-    <label style="display:flex;align-items:center;gap:8px;font-weight:500;margin-top:10px"><input type="checkbox" id="sOto" ${S.otosolOn?'checked':''} style="width:auto;min-height:0"> Aktive peman ak kont Otosol</label>
-    <label for="sOtoKey">Kle Otosol</label><input id="sOtoKey" type="password" autocomplete="off" placeholder="${S.otosolKeySet?'✓ Kle a anrejistre (kole yon lòt pou chanje l)':'Kole kle a isit la'}">
+    <details style="margin-top:14px;border-top:1px solid var(--line);padding-top:10px"><summary style="cursor:pointer;font-weight:600">💳 Mwayen peman <span class="muted" style="font-weight:400">· ${S.pays.filter(m=>m.active).map(m=>esc(m.label)).join(', ')}</span></summary>
+      <div id="payEd">${S.pays.map((m,i)=>payRow(m,i)).join('')}</div>
+      <button class="sm" id="pAdd" style="margin-top:10px">+ Ajoute yon mwayen peman</button>
+    </details>
+    <details style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px"><summary style="cursor:pointer;font-weight:600">💰 Otosol <span class="muted" style="font-weight:400">· ${S.otosolOn&&S.otosolKeySet?'✅ konekte':'pa konekte'}</span></summary>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:500;margin-top:10px"><input type="checkbox" id="sOto" ${S.otosolOn?'checked':''} style="width:auto;min-height:0"> Kliyan ka peye ak kont Otosol yo</label>
+      <label for="sOtoKey">Kle Otosol <span class="muted" style="font-weight:400">(admin Otosol → 🦚 Koneksyon ak Mr Le Paon Invest)</span></label><input id="sOtoKey" type="password" autocomplete="off" placeholder="${S.otosolKeySet?'✓ Kle a anrejistre':'Kole kle a isit la'}">
+    </details>
+    <details style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px"><summary style="cursor:pointer;font-weight:600">📩 SMS otomatik <span class="muted" style="font-weight:400">· ${S.smsOn?'✅ aktive':'etenn'}</span></summary>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:500;margin-top:10px"><input type="checkbox" id="sSms" ${S.smsOn?'checked':''} style="width:auto;min-height:0"> Konfime peman yo otomatikman ak SMS</label>
+      <div class="muted" style="margin-top:8px">Adrès pou aplikasyon SMS la sou telefòn ou (pa bay pèsonn li):</div>
+      <div class="code" id="smsUrl">${esc(smsUrl)}</div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button class="sm" id="smsCopy">Kopye adrès la</button><button class="sm dang" id="smsNew">Chanje kle a</button></div>
+      <label for="sTrust">Non ki voye SMS yo</label><input id="sTrust" value="${esc(S.smsTrusted||'')}">
+      <details style="margin-top:8px"><summary class="muted" style="cursor:pointer">Dènye SMS yo (${a.sms.length})</summary>${a.sms.map(m=>`<div class="row" style="display:block"><div style="font-size:13px">${esc(m.text)}</div><div class="muted">${esc(m.from)} · ${fd(m.at)} · <b>${esc(m.status)}</b>${m.amount?' · '+fm(m.amount):''}${m.note?' · '+esc(m.note):''}</div></div>`).join('')||'<div class="muted">Poko gen SMS.</div>'}</details>
+    </details>
     <div class="err" id="sErr" role="alert"></div>
-    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="pri" id="sGo">Anrejistre paramèt yo</button><button id="bExp">Telechaje yon kopi done yo</button></div>
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="pri" id="sGo">Anrejistre</button><button class="sm" id="bExp">Telechaje yon kopi done yo</button></div>
   </div>`;
   bindAdmin();
 }
