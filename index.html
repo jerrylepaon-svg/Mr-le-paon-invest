@@ -550,7 +550,7 @@ if(/reg/.test(location.search))tab(true);
 $('lPin').addEventListener('keydown',e=>{if(e.key==='Enter')$('lGo').click()});
 
 /* ---------------- admin ---------------- */
-let A=null,openLot=null,lastOk='';const closedLots=new Set();
+let A=null,openLot=null,lastOk='';const openLots=new Set(),openInv=new Set();
 const at=()=>ls.get('lp_admin');
 async function act(action,body,btn){busy(btn,true);try{const r=await api(action,body,at());return r}catch(e){if(e.status===401){ls.set('lp_admin',null);loadAdmin()}throw e}finally{busy(btn,false)}}
 async function loadAdmin(){
@@ -591,11 +591,11 @@ function renderAdmin(){
     ${a.refunds.map(r=>`<div class="row"><span><b>${esc(r.name)}</b> · ${fm(r.amount)} <span class="muted">· ${fd(r.date)}</span></span><button class="sm dang" data-dcan="${r.id}">Retire l</button></div>`).join('')}
     <div style="margin-top:10px"><button class="dang" id="rfAll">Retire yo tout (${fm(a.refunds.reduce((x,r)=>x+r.amount,0))})</button></div>
   </div>`:''}
-  <div class="sec card" id="a-aktiv" style="border:2px solid #9FC9BA">
-    <h3 style="font-size:20px">✅ Dènye aktivasyon yo (${(a.recentApproved||[]).length})</h3>
+  <details class="sec card" id="a-aktiv" style="border:2px solid #9FC9BA">
+    <summary style="cursor:pointer"><b style="font-size:17px">✅ Dènye aktivasyon yo (${(a.recentApproved||[]).length})</b> <span class="muted">· pou anile yon erè</span></summary>
     <p class="muted" style="margin:4px 0 6px">Si w aktive yon moun pa erè: <b>"li pa t peye"</b> retire aksyon yo san ranbou; <b>"li te peye"</b> mete kòb li nan bous li.</p>
     ${(a.recentApproved||[]).map(r=>`<div class="row" style="flex-wrap:wrap"><div style="flex:1;min-width:200px"><b>${esc(r.invName)}</b>${r.code?' · '+esc(r.code):''} · ${r.q} aksyon · ${fm(r.amount)}<div class="muted">${esc(r.lotName)} · ${esc(r.method)} · ${fd(r.date)}${r.rule&&r.rule!=='admin'?' · otomatik':''}</div></div>${r.sold?'<span class="tag t-gray">Deja vann</span>':(r.pay==='bous'||r.pay==='otosol'?`<button class="sm dang" data-cancel="${r.id}" data-tb="0" data-nm="${esc(r.invName)}">Anile · kòb la retounen ${r.pay==='bous'?'nan bous li':'sou Otosol li'}</button>`:`<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="sm dang" data-cancel="${r.id}" data-tb="0" data-nm="${esc(r.invName)}">Anile · li pa t peye</button><button class="sm" data-cancel="${r.id}" data-tb="1" data-nm="${esc(r.invName)}">Anile · li te peye, mete kòb la nan bous li</button>${r.bous>=r.amount?`<button class="sm pri" data-tobous="${r.id}" data-nm="${esc(r.invName)}" data-amt="${r.amount}">Li reenvesti ak bous li (${fm(r.bous)})</button>`:''}</div>`)}</div>`).join('')||'<div class="muted">Pa gen aktivasyon.</div>'}
-  </div>
+  </details>
   ${pushBox('admin')}
 
   <div class="sec card" id="a-demann">
@@ -612,29 +612,34 @@ function renderAdmin(){
   <div class="sec card" id="a-kliyan">
     <h3 style="font-size:20px">👥 Kliyan ki enskri yo (${a.investors.length})</h3>
     <p class="muted" style="margin:4px 0 8px">Envestisè aktif (ki gen omwen 1 aksyon): <b>${a.active}/${S.maxInv}</b></p>
-    ${a.investors.map(i=>`<div class="row" style="flex-wrap:wrap"><div style="flex:1;min-width:180px"><b>${esc(i.name)}</b>${i.locked?' <span class="tag t-gold">Bloke</span>':''}<div class="muted">ID <b>${esc(i.code)}</b>${i.phone?' · 📞 '+esc(fmtNum(i.phone)):''}${i.email?' · ✉️ '+esc(i.email):''}</div><div class="muted">Enskri ${fd(i.joined)} · ${i.shares?'<b style="color:var(--em)">'+i.shares+' aksyon</b> · nan machandiz kounye a: '+fm(i.money.stock)+(i.money.paid?' · deja retire: '+fm(i.money.paid):''):'Poko envesti'}</div></div>
-      <div style="text-align:right"><div class="muted">Nan bous li</div><b style="color:var(--golddk)">${fm(i.money.ready)}</b></div>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;width:100%">${i.shares?`<input type="number" min="1" step="1" placeholder="Kantite (G)" id="w-${i.id}" style="max-width:150px;min-height:36px"><select id="wm-${i.id}" style="max-width:130px;min-height:36px;font-size:13px"><option>MonCash</option><option>NatCash</option></select><button class="sm" data-pay="${i.id}">Make retrè peye</button>`:''}<button class="sm" data-pin="${i.id}">Nouvo modpas</button>${i.money.ready>0?`<div style="width:100%;display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;background:#F7FBF9;border:1px dashed #9FC9BA;border-radius:10px;padding:8px"><span style="font-size:13px"><b>Li reenvesti ak bous li?</b></span><input type="number" min="1" step="1" placeholder="Kantite (G)" id="wt-${i.id}" style="max-width:140px;min-height:36px"><button class="sm pri" data-wtake="${i.id}">Retire nan bous li</button><span class="err" id="wte-${i.id}"></span></div>`:''}${i.credits&&i.credits.length?`<details style="width:100%;margin-top:4px"><summary class="muted" style="cursor:pointer">Kòb ki antre nan bous li (${i.credits.length})</summary>${i.credits.map(c=>`<div class="row"><span>${fm(c.amount)} · ${esc(c.method)} <span class="muted">· ${fd(c.date)}</span></span><button class="sm dang" data-dcan="${c.id}">Retire l nan bous la</button></div>`).join('')}</details>`:''}<span class="err" id="we-${i.id}"></span></div></div>`).join('')||'<div class="muted" style="margin:8px 0">Pèsonn poko enskri.</div>'}
-    <h4 style="margin:18px 0 0;font-size:15px">Ajoute yon kliyan ak men w</h4>
+    ${a.investors.map(i=>{const my=[];a.lots.forEach(l=>l.shares.forEach((sh,ix)=>{if(sh.inv===i.id)my.push({l,sh,ix})}));
+      const todo=k=>my.filter(x=>!x[k]).length;
+      return `<details class="row" style="display:block" data-inv="${i.id}" ${openInv.has(i.id)?'open':''}><summary style="cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><span><b>${esc(i.name)}</b> <span class="muted">· ${esc(i.code)}</span>${i.locked?' <span class="tag t-gold">Bloke</span>':''}<div class="muted">${i.shares?i.shares+' aksyon · '+my.filter(x=>x.sh.vann).length+' vann':'Poko envesti'}${i.money.ready?' · bous: '+fm(i.money.ready):''}</div></span><span class="muted" style="color:var(--em)">▸</span></summary>
+      <div class="muted" style="margin-top:6px">${i.phone?'📞 '+esc(fmtNum(i.phone)):''}${i.email?' · ✉️ '+esc(i.email):''} · enskri ${fd(i.joined)}${i.money.stock?' · nan machandiz: '+fm(i.money.stock):''}${i.money.paid?' · deja retire: '+fm(i.money.paid):''}</div>
+      ${my.length?`<div style="margin:10px 0 4px;font-weight:600">Aksyon li yo</div>
+      ${my.map(x=>`<div style="padding:8px 0;border-top:1px solid var(--line)"><div style="font-size:14px;margin-bottom:6px">${esc(x.l.name)} <span class="muted">#${x.sh.n}</span></div><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">${[['achte','Achte'],['dispo','Disponib'],['vann','Vann']].map(([k,t])=>`<button class="sm" data-step="${k}" data-on="${x.sh[k]?0:1}" data-l="${x.l.id}" data-i="${x.ix}" style="padding:0 4px;${x.sh[k]?'background:var(--em);border-color:var(--em);color:#fff':''}">${x.sh[k]?'✓ '+t:t}</button>`).join('')}</div></div>`).join('')}
+      ${my.length>1?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 4px"><span class="muted" style="align-self:center">Tout aksyon li yo:</span>${todo('achte')?`<button class="sm" data-allstep="achte" data-inv="${i.id}">✓ Achte (${todo('achte')})</button>`:''}${todo('dispo')?`<button class="sm" data-allstep="dispo" data-inv="${i.id}">✓ Disponib (${todo('dispo')})</button>`:''}</div>`:''}`:''}
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;width:100%">${i.shares?`<input type="number" min="1" step="1" placeholder="Kantite (G)" id="w-${i.id}" style="max-width:150px;min-height:36px"><select id="wm-${i.id}" style="max-width:130px;min-height:36px;font-size:13px"><option>MonCash</option><option>NatCash</option></select><button class="sm" data-pay="${i.id}">Make retrè peye</button>`:''}<button class="sm" data-pin="${i.id}">Nouvo modpas</button>${i.money.ready>0?`<div style="width:100%;display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;background:#F7FBF9;border:1px dashed #9FC9BA;border-radius:10px;padding:8px"><span style="font-size:13px"><b>Li reenvesti ak bous li?</b></span><input type="number" min="1" step="1" placeholder="Kantite (G)" id="wt-${i.id}" style="max-width:140px;min-height:36px"><button class="sm pri" data-wtake="${i.id}">Retire nan bous li</button><span class="err" id="wte-${i.id}"></span></div>`:''}${i.credits&&i.credits.length?`<details style="width:100%;margin-top:4px"><summary class="muted" style="cursor:pointer">Kòb ki antre nan bous li (${i.credits.length})</summary>${i.credits.map(c=>`<div class="row"><span>${fm(c.amount)} · ${esc(c.method)} <span class="muted">· ${fd(c.date)}</span></span><button class="sm dang" data-dcan="${c.id}">Retire l nan bous la</button></div>`).join('')}</details>`:''}<span class="err" id="we-${i.id}"></span></div></details>`}).join('')||'<div class="muted" style="margin:8px 0">Pèsonn poko enskri.</div>'}
+    <details style="margin-top:14px"><summary style="cursor:pointer;font-weight:600">➕ Ajoute yon kliyan ak men w</summary>
     <div class="f2">
       <div><label for="iName">Non</label><input id="iName"></div>
       <div><label for="iTel">Telefòn</label><input id="iTel" type="tel"></div>
     </div>
     <div class="err" id="iErr" role="alert"></div>
-    <div style="margin-top:12px"><button class="pri" id="iGo">Ajoute envestisè a</button></div>
+    <div style="margin-top:12px"><button class="pri" id="iGo">Ajoute kliyan an</button></div></details>
   </div>
 
-  <div class="sec card" id="a-mesaj">
-    <h3 style="font-size:18px">Voye yon mesaj bay envestisè yo</h3>
+  <details class="sec card" id="a-mesaj">
+    <summary style="cursor:pointer"><b style="font-size:17px">📩 Voye yon mesaj bay envestisè yo</b></summary>
     <div class="f2"><div><label for="mTo">Pou</label><select id="mTo"><option value="">Tout envestisè yo</option>${a.investors.map(i=>`<option value="${i.id}">${esc(i.code)} · ${esc(i.name)}</option>`).join('')}</select></div></div>
     <label for="mTxt">Mesaj</label><input id="mTxt" placeholder="Egz: Twal yo ap rive Bwavena vandredi">
     <div class="err" id="mErr" role="alert"></div>
     <div style="margin-top:12px"><button class="pri" id="mGo">Pibliye mesaj la</button></div>
     ${a.messages.map(x=>{const i=a.investors.find(v=>v.id===x.inv);return `<div class="row"><div>${esc(x.text)}<div class="muted">${fd(x.date)} · ${i?esc(i.name):'Tout envestisè yo'}</div></div><button class="sm dang" data-mdel="${x.id}">Retire</button></div>`}).join('')}
-  </div>
+  </details>
 
-  <div class="sec card">
-    <h3 style="font-size:18px">Mete yon nouvo aksyon</h3>
+  <details class="sec card">
+    <summary style="cursor:pointer"><b style="font-size:17px">➕ Mete yon nouvo aksyon</b></summary>
     <div class="f2">
       <div><label for="nName">Non atik la</label><input id="nName" placeholder="Egz: Fouwo chèz blan"></div>
       <div><label for="nDet">Detay</label><input id="nDet" placeholder="Koulè, gwosè…"></div>
@@ -645,11 +650,11 @@ function renderAdmin(){
     </div>
     <div class="err" id="nErr" role="alert"></div>
     <div style="margin-top:12px"><button class="pri" id="nGo">Ajoute aksyon yo</button></div>
-  </div>
+  </details>
 
   <div class="sec" id="a-aksyon"><h2>Aksyon yo</h2>${a.lots.map(l=>{
     const tot=l.shares.length,vann=l.shares.filter(s=>s.vann).length,taken=l.shares.filter(s=>s.inv).length;
-    return `<details class="card" style="margin-bottom:12px" ${closedLots.has(l.id)?'':'open'} data-lot="${l.id}"><summary><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><span style="font-size:16px">${esc(l.name)} <span class="muted">· ${fm(l.price)} · +${fm(l.profit)}</span></span><span class="muted">${taken}/${tot} achte · ${vann} vann · <span style="color:var(--em)">${closedLots.has(l.id)?'▸ Louvri':'▾ Fèmen'}</span></span></div></summary>
+    return `<details class="card" style="margin-bottom:12px" ${openLots.has(l.id)?'open':''} data-lot="${l.id}"><summary><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><span style="font-size:16px">${esc(l.name)} <span class="muted">· ${fm(l.price)} · +${fm(l.profit)}</span></span><span class="muted">${taken}/${tot} achte · ${vann} vann · <span style="color:var(--em)">${openLots.has(l.id)?'▾ Fèmen':'▸ Louvri'}</span></span></div></summary>
     <div class="f2" style="margin-top:8px"><div><label>Magazen</label><select data-lf="loc" data-l="${l.id}"><option value="">Pou konfime</option>${a.locs.map(x=>`<option ${l.loc===x?'selected':''}>${esc(x)}</option>`).join('')}</select></div>
     <div><label>Eta machandiz la</label><select data-lf="status" data-l="${l.id}">${Object.keys(a.stat).map(k=>`<option value="${k}" ${l.status===k?'selected':''}>${esc(a.stat[k])}</option>`).join('')}</select></div></div>
     <label>Mesaj pou envestisè yo sou atik sa a</label><input data-lf="note" data-l="${l.id}" value="${esc(l.note)}" placeholder="Egz: Twal la ap rive nan 5 jou, transpò a an reta">
@@ -707,6 +712,8 @@ function bindAdmin(){
     let ok=0,bad=[];for(const r of l){try{await act('dep-cancel',{id:r.id},$('rfAll'));ok++}catch(e){bad.push(r.name+': '+e.message)}}
     setOk(`<div class="ok">${ok} ranbousman retire.${bad.length?'<br>Pa t ka retire: '+bad.map(esc).join('<br>'):''}</div>`);loadAdmin()};
   q('[data-tobous]').forEach(b=>b.onclick=async()=>{if(!confirm(`${b.dataset.nm} te reenvesti ak kòb ki nan bous li? ${fm(+b.dataset.amt)} ap soti nan bous li.`))return;try{const r=await act('req-to-bous',{id:b.dataset.tobous},b);setOk(`<div class="ok">Anrejistre. Rès nan bous li: <b>${fm(r.left)}</b>.</div>`);loadAdmin()}catch(e){toast(e.message,true)}});
+  q('[data-allstep]').forEach(b=>b.onclick=async()=>{const k=b.dataset.allstep,id=b.dataset.inv;openInv.add(id);const list=[];A.lots.forEach(l=>l.shares.forEach((sh,ix)=>{if(sh.inv===id&&!sh[k])list.push({l:l.id,i:ix})}));
+    busy(b,true);let bad=0;for(const x of list){try{await api('share-step',{lot:x.l,i:x.i,step:k,on:true},at())}catch(e){bad++}}busy(b,false);toast(bad?bad+' pa t pase.':'Fini!');loadAdmin()});
   q('[data-wtake]').forEach(b=>b.onclick=async()=>{const id=b.dataset.wtake,e=$('wte-'+id),v=Math.round(+$('wt-'+id).value);if(!v||v<1){e.textContent='Mete kantite a.';return}
     if(!confirm(`Retire ${fm(v)} nan bous moun sa a (kòb li reenvesti)?`))return;try{const r=await act('wallet-take',{inv:id,amount:v},b);setOk(`<div class="ok">${fm(v)} retire nan bous li. Rès: <b>${fm(r.left)}</b>.</div>`);loadAdmin()}catch(x){e.textContent=x.message}});
   q('[data-dcan]').forEach(b=>b.onclick=async()=>{if(!confirm('Retire kòb sa a nan bous moun nan? (Pou yon depo ki pa t janm rive vre, oswa yon ranbou ki fèt pa erè.)'))return;try{await act('dep-cancel',{id:b.dataset.dcan},b);toast('Kòb la retire nan bous li.');loadAdmin()}catch(e){toast(e.message,true)}});
@@ -727,7 +734,8 @@ function bindAdmin(){
     if($('nProf').value===''||+$('nProf').value<0){e.textContent='Mete benefis envestisè a pou chak aksyon.';return}
     try{const r=await act('lot-add',{name,detail:$('nDet').value.trim(),loc:$('nLoc').value,qty,price,profit:Math.round(+$('nProf').value)},$('nGo'));openLot=r.id;toast('Aksyon yo ajoute.');loadAdmin()}catch(x){e.textContent=x.message}
   };
-  q('details[data-lot]').forEach(d=>d.addEventListener('toggle',()=>{if(d.open)closedLots.delete(d.dataset.lot);else closedLots.add(d.dataset.lot);const m=d.querySelector('summary span[style*="--em"]');if(m)m.textContent=d.open?'▾ Fèmen':'▸ Louvri'}));
+  q('details[data-inv]').forEach(d=>d.addEventListener('toggle',()=>{if(d.open)openInv.add(d.dataset.inv);else openInv.delete(d.dataset.inv)}));
+  q('details[data-lot]').forEach(d=>d.addEventListener('toggle',()=>{if(d.open)openLots.add(d.dataset.lot);else openLots.delete(d.dataset.lot);const m=d.querySelector('summary span[style*="--em"]');if(m)m.textContent=d.open?'▾ Fèmen':'▸ Louvri'}));
   q('[data-step]').forEach(b=>b.onclick=async()=>{const on=b.dataset.on==='1';if(!on&&!confirm('Anile etap sa a?'))return;try{await act('share-step',{lot:b.dataset.l,i:+b.dataset.i,step:b.dataset.step,on},b);loadAdmin()}catch(e){toast(e.message,true)}});
   q('[data-lf]').forEach(el=>el.addEventListener('change',async()=>{openLot=el.dataset.l;try{await act('lot-update',{id:el.dataset.l,[el.dataset.lf]:el.value});toast('Anrejistre.');loadAdmin()}catch(e){toast(e.message,true);loadAdmin()}}));
   q('[data-sf]').forEach(el=>el.addEventListener('change',async()=>{openLot=el.dataset.l;let fromBous=false;
