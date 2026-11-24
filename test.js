@@ -277,3 +277,20 @@ console.log('TÈS BOUS YO PASE');
   assert.match(await err(c9('req-cancel', { id: r3.id }, a9)), /vann/);
 }
 console.log('TÈS ANILASYON YO PASE');
+// ---- retire yon depo erè ----
+{
+  const s10 = memoryStore();
+  const c = (action, body = {}, token = null) => handle(s10, { method: 'POST', action, body, token, query: {}, ip: '10.0.0.1' });
+  const g = (action, token = null) => handle(s10, { method: 'GET', action, body: {}, token, query: {}, ip: '10.0.0.1' });
+  const { token: at } = await c('login', { password: 'test' });
+  const reg = await c('register', { name: 'Pa Peye', phone: '36667777', pin: 'bon-modpas' });
+  const rq = await c('request', { name: 'Pa Peye', tel: '36667777', q: 1, lot: 'l1', pay: 'mc1', from: '36667777' });
+  await c('req-approve', { id: rq.id }, at);
+  await c('req-cancel', { id: rq.id, toBous: true }, at); // erè: li pa t peye
+  let ad = await g('admin-data', at); assert.equal(ad.totals.owed, 27500);
+  const cr = ad.investors[0].credits[0];
+  await c('dep-cancel', { id: cr.id }, at);
+  ad = await g('admin-data', at); assert.equal(ad.totals.owed, 0);
+  assert.equal((await g('me', reg.token)).money.ready, 0);
+}
+console.log('TÈS KORIJE DEPO YO PASE');
