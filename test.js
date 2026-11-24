@@ -294,3 +294,28 @@ console.log('TÈS ANILASYON YO PASE');
   assert.equal((await g('me', reg.token)).money.ready, 0);
 }
 console.log('TÈS KORIJE DEPO YO PASE');
+// ---- egzanp Jerry: 27 500 -> 35 000, reenvesti 24 000, retire 11 000 -> 0 ----
+{
+  const s11 = memoryStore();
+  const c = (action, body = {}, token = null) => handle(s11, { method: 'POST', action, body, token, query: {}, ip: '11.0.0.1' });
+  const g = (action, token = null) => handle(s11, { method: 'GET', action, body: {}, token, query: {}, ip: '11.0.0.1' });
+  const { token: at } = await c('login', { password: 'test' });
+  const ad0 = await g('admin-data', at); await c('settings', { ...ad0.settings, waitDays: 0 }, at);
+  await c('lot-add', { name: 'Fouwo', qty: 10, price: 6000, profit: 750 }, at);
+  const lot2 = (await g('admin-data', at)).lots[1].id;
+  const reg = await c('register', { name: 'Envestisè A', phone: '32223333', pin: 'bon-modpas' });
+  const r1 = await c('request', { name: 'Envestisè A', tel: '32223333', q: 1, lot: 'l1', pay: 'mc1', from: '32223333' }, reg.token);
+  await c('req-approve', { id: r1.id }, at);
+  await c('share-step', { lot: 'l1', i: 0, step: 'vann', on: true }, at);
+  let me = await g('me', reg.token); assert.equal(me.money.ready, 35000);
+  // admin aktive 4 fouwo pa MonCash pa erè, epi make yo kòm reenvesti ak bous
+  const r2 = await c('request', { name: 'Envestisè A', tel: '32223333', q: 4, lot: lot2, pay: 'mc1', from: '32223333' }, reg.token);
+  await c('req-approve', { id: r2.id }, at);
+  me = await g('me', reg.token); assert.equal(me.money.ready, 35000); // pwoblèm Jerry a
+  const t = await c('req-to-bous', { id: r2.id }, at); assert.equal(t.left, 11000);
+  const inv = (await g('admin-data', at)).investors[0].id;
+  await c('withdraw', { inv, amount: 11000, method: 'MonCash' }, at);
+  me = await g('me', reg.token); assert.equal(me.money.ready, 0);
+  assert.equal((await g('admin-data', at)).totals.owed, 0);
+}
+console.log('TÈS LOJIK JERRY A PASE');
