@@ -251,3 +251,29 @@ console.log('TÈS OTOSOL YO PASE');
   globalThis.fetch = realFetch;
 }
 console.log('TÈS BOUS YO PASE');
+// ---- anile aktivasyon ----
+{
+  const s9 = memoryStore();
+  const c9 = (action, body = {}, token = null) => handle(s9, { method: 'POST', action, body, token, query: {}, ip: '9.9.9.9' });
+  const g9 = (action, token = null) => handle(s9, { method: 'GET', action, body: {}, token, query: {}, ip: '9.9.9.9' });
+  const { token: a9 } = await c9('login', { password: 'test' });
+  const reg = await c9('register', { name: 'Ere Moun', phone: '34445555', pin: 'bon-modpas' });
+  const rq = await c9('request', { name: 'Ere Moun', tel: '34445555', q: 2, lot: 'l1', pay: 'mc1', from: '34445555' });
+  await c9('req-approve', { id: rq.id }, a9);
+  let me = await g9('me', reg.token); assert.equal(me.shares.length, 2);
+  let ad = await g9('admin-data', a9); assert.equal(ad.recentApproved.length, 1);
+  const c = await c9('req-cancel', { id: rq.id, toBous: true }, a9); assert.match(c.how, /bous/);
+  me = await g9('me', reg.token); assert.equal(me.shares.length, 0); assert.equal(me.money.ready, 55000);
+  assert.equal((await g9('site')).lots[0].free, 10);
+  // achte ak bous, anile -> kòb la retounen nan bous
+  const r2 = await c9('request', { name: 'x', tel: '34445555', q: 1, lot: 'l1', pay: 'bous' }, reg.token);
+  me = await g9('me', reg.token); assert.equal(me.money.ready, 27500);
+  await c9('req-cancel', { id: r2.id }, a9);
+  me = await g9('me', reg.token); assert.equal(me.money.ready, 55000);
+  // pa ka anile si aksyon an vann
+  const r3 = await c9('request', { name: 'x', tel: '34445555', q: 1, lot: 'l1', pay: 'bous' }, reg.token);
+  ad = await g9('admin-data', a9); const i = ad.lots[0].shares.findIndex((x) => x.inv);
+  await c9('share-step', { lot: 'l1', i, step: 'vann', on: true }, a9);
+  assert.match(await err(c9('req-cancel', { id: r3.id }, a9)), /vann/);
+}
+console.log('TÈS ANILASYON YO PASE');
