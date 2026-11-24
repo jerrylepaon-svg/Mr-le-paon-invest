@@ -609,7 +609,7 @@ function bindAdmin(){
   q('[data-cancel]').forEach(b=>b.onclick=async()=>{
     const toBous=b.dataset.tb==='1';if(!confirm(`Anile aktivasyon ${b.dataset.nm}? Aksyon yo ap retire nan kont li.${toBous?' Kòb li te peye a ap ale nan bous li.':''}`))return;
     try{const r=await act('req-cancel',{id:b.dataset.cancel,toBous},b);setOk(`<div class="ok">Aktivasyon an anile. ${esc(r.how)}</div>`);loadAdmin()}catch(e){toast(e.message,true)}});
-  if($('rfAll'))$('rfAll').onclick=async()=>{const l=a.refunds;if(!confirm(`Retire ${l.length} ranbousman (${fm(l.reduce((x,r)=>x+r.amount,0))}) nan bous moun yo?`))return;
+  if($('rfAll'))$('rfAll').onclick=async()=>{const l=A.refunds;if(!confirm(`Retire ${l.length} ranbousman (${fm(l.reduce((x,r)=>x+r.amount,0))}) nan bous moun yo?`))return;
     let ok=0,bad=[];for(const r of l){try{await act('dep-cancel',{id:r.id},$('rfAll'));ok++}catch(e){bad.push(r.name+': '+e.message)}}
     setOk(`<div class="ok">${ok} ranbousman retire.${bad.length?'<br>Pa t ka retire: '+bad.map(esc).join('<br>'):''}</div>`);loadAdmin()};
   q('[data-dcan]').forEach(b=>b.onclick=async()=>{if(!confirm('Retire kòb sa a nan bous moun nan? (Pou yon depo ki pa t janm rive vre, oswa yon ranbou ki fèt pa erè.)'))return;try{await act('dep-cancel',{id:b.dataset.dcan},b);toast('Kòb la retire nan bous li.');loadAdmin()}catch(e){toast(e.message,true)}});
