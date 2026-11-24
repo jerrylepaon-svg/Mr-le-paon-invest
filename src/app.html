@@ -516,7 +516,7 @@ function renderAdmin(){
     <h3 style="font-size:20px">👥 Kliyan ki enskri yo (${a.investors.length})</h3>
     <p class="muted" style="margin:4px 0 8px">Envestisè aktif (ki gen omwen 1 aksyon): <b>${a.active}/${S.maxInv}</b></p>
     ${a.investors.map(i=>{const my=[];a.lots.forEach(l=>l.shares.forEach((sh,ix)=>{if(sh.inv===i.id)my.push({l,sh,ix})}));
-      const todo=k=>my.filter(x=>!x[k]).length;
+      const todo=k=>my.filter(x=>!x.sh[k]).length;
       return `<details class="row" style="display:block" data-inv="${i.id}" ${openInv.has(i.id)?'open':''}><summary style="cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><span><b>${esc(i.name)}</b> <span class="muted">· ${esc(i.code)}</span>${i.locked?' <span class="tag t-gold">Bloke</span>':''}<div class="muted">${i.shares?i.shares+' aksyon · '+my.filter(x=>x.sh.vann).length+' vann':'Poko envesti'}${i.money.ready?' · bous: '+fm(i.money.ready):''}</div></span><span class="muted" style="color:var(--em)">▸</span></summary>
       <div class="muted" style="margin-top:6px">${i.phone?'📞 '+esc(fmtNum(i.phone)):''}${i.email?' · ✉️ '+esc(i.email):''} · enskri ${fd(i.joined)}${i.money.stock?' · nan machandiz: '+fm(i.money.stock):''}${i.money.paid?' · deja retire: '+fm(i.money.paid):''}</div>
       ${my.length?`<div style="margin:10px 0 4px;font-weight:600">Aksyon li yo</div>
