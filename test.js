@@ -172,3 +172,42 @@ console.log('TÈS ETAP YO PASE');
   globalThis.fetch = realFetch;
 }
 console.log('TÈS NOTIFIKASYON YO PASE');
+// ---- Otosol ----
+{
+  const calls = [];
+  let oto = { balance: 100000, spent: {} };
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url, o) => {
+    if (!String(url).includes('otosol')) return new Response('', { status: 201 });
+    const b = JSON.parse(o.body); calls.push(b.action);
+    if (o.headers['x-keyn-secret'] !== 'K'.repeat(48)) return Response.json({ error: 'pa otorize' }, { status: 403 });
+    if (b.pin !== '123456') return Response.json({ error: 'Telefòn oswa PIN Otosol la pa bon.' }, { status: 401 });
+    if (b.action === 'keyn_check') return Response.json({ name: 'Klian Oto', balance: oto.balance });
+    if (b.action === 'keyn_spend') { if (oto.balance < b.amount) return Response.json({ error: 'Balans lib ou pa ase.' }, { status: 400 }); oto.balance -= b.amount; oto.spent[b.ref] = b.amount; return Response.json({ ok: true, balance: oto.balance }); }
+    if (b.action === 'keyn_refund') { oto.balance += oto.spent[b.ref] || 0; delete oto.spent[b.ref]; return Response.json({ ok: true }); }
+  };
+  const s7 = memoryStore();
+  const c7 = (action, body = {}, token = null) => handle(s7, { method: 'POST', action, body, token, query: {}, ip: '7.7.7.7' });
+  const g7 = (action, token = null) => handle(s7, { method: 'GET', action, body: {}, token, query: {}, ip: '7.7.7.7' });
+  const { token: a7 } = await c7('login', { password: 'test' });
+  assert.equal((await g7('site')).otosol, false);
+  const ad = await g7('admin-data', a7);
+  assert.match(await err(c7('settings', { ...ad.settings, otosolOn: true }, a7)), /kle/i);
+  await c7('settings', { ...ad.settings, otosolOn: true, otosolKey: 'K'.repeat(48) }, a7);
+  assert.equal((await g7('site')).otosol, true);
+  assert.equal((await g7('admin-data', a7)).settings.otosolKeySet, true);
+  assert.ok(!JSON.stringify(await g7('admin-data', a7)).includes('K'.repeat(48)));
+  assert.equal((await c7('otosol-check', { otosolPhone: '37001122', otosolPin: '123456' })).balance, 100000);
+  assert.match(await err(c7('request', { name: 'Klian Oto', tel: '37001122', q: 1, lot: 'l1', pay: 'otosol', otosolPhone: '37001122', otosolPin: '000000' })), /PIN/);
+  const r = await c7('request', { name: 'Klian Oto', tel: '37001122', q: 2, lot: 'l1', pay: 'otosol', otosolPhone: '37001122', otosolPin: '123456' });
+  assert.equal(r.status, 'approved'); assert.equal(oto.balance, 45000);
+  assert.match(await err(c7('request', { name: 'Klian Oto', tel: '37001122', q: 2, lot: 'l1', pay: 'otosol', otosolPhone: '37001122', otosolPin: '123456' })), /pa ase/);
+  // si aktivasyon an echwe, Otosol ranbouse
+  const st = await g7('admin-data', a7);
+  await c7('settings', { ...st.settings, maxInv: 1, otosolOn: true }, a7);
+  const before = oto.balance;
+  assert.match(await err(c7('request', { name: 'Lòt Moun', tel: '39990000', q: 1, lot: 'l1', pay: 'otosol', otosolPhone: '39990000', otosolPin: '123456' })), /plas/);
+  assert.equal(oto.balance, before);
+  globalThis.fetch = realFetch;
+}
+console.log('TÈS OTOSOL YO PASE');

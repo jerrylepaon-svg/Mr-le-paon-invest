@@ -68,7 +68,7 @@ __HEADER__
       <div class="muted">Chwazi kijan w ap peye.</div>
       <div class="pay" id="payList" role="radiogroup" aria-label="Mwayen peman"></div>
       <div id="payBox"></div>
-      <div style="margin-top:12px;border:1px dashed #9FC9BA;border-radius:14px;padding:14px;background:#F7FBF9">
+      <div id="afterPay" style="margin-top:12px;border:1px dashed #9FC9BA;border-radius:14px;padding:14px;background:#F7FBF9">
         <div style="font-weight:700">Apre w fin peye</div>
         <div class="muted">Mete ID tranzaksyon an <b>oswa</b> nimewo telefòn ki fè peman an. Konsa peman ou an ap konfime otomatikman.</div>
         <div class="f2">
@@ -251,10 +251,27 @@ function calcE(){
   renderPay();
 }
 function renderPay(){
-  if(!SITE)return;const act=SITE.pays;
+  if(!SITE)return;const act=SITE.pays.concat(SITE.otosol?[{id:'otosol',label:'💰 Kont Otosol',number:'Lajan lib ou',name:''}]:[]);
   if(!act.some(m=>m.id===payId))payId=act[0]?act[0].id:null;
-  $('payList').innerHTML=act.map(m=>`<button type="button" role="radio" aria-checked="${m.id===payId}" data-pay="${m.id}" style="text-align:left;padding:10px 12px;min-height:56px;${m.id===payId?'border:2px solid #0F6E56;background:var(--mint)':''}"><div>${esc(m.label)}</div><div class="muted" style="font-weight:500">${esc(fmtNum(m.number))}</div></button>`).join('')||'<div class="muted">Pa gen mwayen peman aktif.</div>';
+  $('payList').innerHTML=act.map(m=>`<button type="button" role="radio" aria-checked="${m.id===payId}" data-pay="${m.id}" style="text-align:left;padding:10px 12px;min-height:56px;display:block;width:100%;${m.id===payId?'border:2px solid #0F6E56;background:var(--mint)':''}"><span style="display:block">${esc(m.label)}</span><span class="muted" style="display:block;font-weight:500">${esc(fmtNum(m.number))}</span></button>`).join('')||'<div class="muted">Pa gen mwayen peman aktif.</div>';
   const m=act.find(x=>x.id===payId),l=curLot(),q=Math.max(0,Math.round(+$('eQ').value||0));
+  const oto=payId==='otosol';$('afterPay').classList.toggle('hidden',oto);
+  $('eGo').textContent=oto?'Peye ak Otosol':'Mwen peye, voye demann lan';
+  if(oto){
+    const keep={p:$('oPhone')?$('oPhone').value:'',n:$('oPin')?$('oPin').value:''};
+    $('payBox').innerHTML=`<div style="border:2px solid #0F6E56;border-radius:14px;padding:14px;margin-top:10px;background:#F7FBF9">
+      <div style="font-weight:700">Peye ${l&&q?fm(q*l.price):''} ak lajan lib ou sou Otosol</div>
+      <div class="muted">Se lajan lib ou sèlman ki konte, epi li dwe kouvri tout total la. Aksyon ou yo aktive touswit.</div>
+      <div class="f2"><div><label for="oPhone">Nimewo kont Otosol ou</label><input id="oPhone" type="tel" inputmode="numeric" placeholder="Egz: 3700 1122"></div>
+      <div><label for="oPin">PIN Otosol ou (6 chif)</label><input id="oPin" type="password" inputmode="numeric" maxlength="6" autocomplete="off"></div></div>
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button type="button" class="sm" id="oChk">Tcheke balans mwen</button><span class="muted" id="oBal"></span></div>
+      <div class="note" style="margin-top:10px">⚠️ Lè w peye ak Otosol, <b>defi 30 jou ou a rekòmanse a zewo</b>, menm jan ak yon retrè.</div></div>`;
+    $('oPhone').value=keep.p||(ME&&ME.phone)||'';$('oPin').value=keep.n;
+    ['oPhone','oPin'].forEach(id=>$(id).addEventListener('input',()=>{$('eErr').textContent='';$('oBal').textContent=''}));
+    $('oChk').onclick=async()=>{const ph=$('oPhone').value,pn=$('oPin').value.replace(/\D/g,'');if(!d8(ph)||pn.length!==6){$('oBal').textContent='Mete nimewo a ak PIN 6 chif la.';return}
+      busy($('oChk'),true);try{const r=await api('otosol-check',{otosolPhone:ph,otosolPin:pn});const need=l&&q?q*l.price:0;$('oBal').innerHTML=`${esc(r.name)} · balans lib: <b>${fm(r.balance)}</b>${need?(r.balance>=need?' ✅ ase':' ❌ manke '+fm(need-r.balance)):''}`}catch(x){$('oBal').textContent=x.message}finally{busy($('oChk'),false)}};
+    return;
+  }
   $('payBox').innerHTML=m?`<div style="background:var(--deep);color:#fff;border-radius:14px;padding:14px;margin-top:10px"><div style="color:var(--mint2);font-size:13px">Voye ${l&&q?fm(q*l.price):'total la'} sou ${esc(m.label)}</div><div class="big">${esc(fmtNum(m.number))}</div><div style="font-size:14px">Non: <b>${esc(m.name)}</b></div></div>`:'';
 }
 $('pubLots').addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(!b)return;$('eLot').value=b.dataset.pick;calcE();$('envesti').scrollIntoView({behavior:'smooth'})});
@@ -269,11 +286,17 @@ $('eGo').addEventListener('click',async()=>{
   if(!$('eNon').value.trim()){err.textContent='Mete non konplè ou.';return}
   if(!d8($('eTel').value)){err.textContent='Mete yon nimewo telefòn ki gen 8 chif.';return}
   if(!payId){err.textContent='Chwazi kijan w ap peye.';return}
+  const oto=payId==='otosol';let extra={};
+  if(oto){const ph=$('oPhone').value,pn=$('oPin').value.replace(/\D/g,'');if(!d8(ph)){err.textContent='Mete nimewo kont Otosol ou a (8 chif).';return}if(pn.length!==6){err.textContent='Mete PIN Otosol ou a (6 chif).';return}
+    if(!confirm(`Peye ${fm(q*l.price)} ak lajan lib Otosol ou? Defi 30 jou ou a ap rekòmanse a zewo.`))return;extra={otosolPhone:ph,otosolPin:pn}}
+  else{
   if(tx.replace(/[^A-Za-z0-9]/g,'').length<4&&!d8(from)){err.textContent='Mete ID tranzaksyon an oswa nimewo telefòn ki fè peman an (8 chif).';return}
   if(from&&!d8(from)){err.textContent='Nimewo ki fè peman an dwe gen 8 chif.';return}
-  busy($('eGo'),true,'Ap voye…');
+  }
+  busy($('eGo'),true,oto?'Ap peye ak Otosol…':'Ap voye…');
   try{
-    const r=await api('request',{name:$('eNon').value.trim(),tel:$('eTel').value.trim(),q,lot:l.id,pay:payId,txid:tx,from},ls.get('lp_inv'));
+    const r=await api('request',{name:$('eNon').value.trim(),tel:$('eTel').value.trim(),q,lot:l.id,pay:payId,txid:oto?'':tx,from:oto?'':from,...extra},ls.get('lp_inv'));
+    if(oto&&$('oPin'))$('oPin').value='';
     ls.set('lp_wait',JSON.stringify({id:r.id,ck:r.ck,lot:l.name,q,amount:q*l.price,tel:$('eTel').value.trim()}));
     $('eTx').value='';$('eFrom').value='';
     showWait(r);
@@ -493,6 +516,10 @@ function renderAdmin(){
     <div class="muted">Envestisè yo wè nimewo a ak non an, epi yo mete ID tranzaksyon an oswa nimewo ki peye a.</div>
     <div id="payEd">${S.pays.map((m,i)=>payRow(m,i)).join('')}</div>
     <button class="sm" id="pAdd" style="margin-top:10px">+ Ajoute yon mwayen peman</button>
+    <h4 style="margin:18px 0 4px;font-size:15px">💰 Peye ak kont Otosol</h4>
+    <div class="muted">Kliyan Otosol yo ka achte aksyon ak lajan lib yo sou otosol.online. Kopye kle a nan <b>admin Otosol → "🦚 Koneksyon ak Mr Le Paon Invest"</b>, epi kole l isit la.</div>
+    <label style="display:flex;align-items:center;gap:8px;font-weight:500;margin-top:10px"><input type="checkbox" id="sOto" ${S.otosolOn?'checked':''} style="width:auto;min-height:0"> Aktive peman ak kont Otosol</label>
+    <label for="sOtoKey">Kle Otosol</label><input id="sOtoKey" type="password" autocomplete="off" placeholder="${S.otosolKeySet?'✓ Kle a anrejistre (kole yon lòt pou chanje l)':'Kole kle a isit la'}">
     <div class="err" id="sErr" role="alert"></div>
     <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="pri" id="sGo">Anrejistre paramèt yo</button><button id="bExp">Telechaje yon kopi done yo</button></div>
   </div>`;
@@ -545,7 +572,7 @@ function bindAdmin(){
     if(!pays.length){e.textContent='Kite omwen yon mwayen peman.';return}
     if(pays.some(m=>!m.label||!d8(m.number)||!m.name)){e.textContent='Chak mwayen peman bezwen yon non, yon nimewo 8 chif ak non moun nan.';return}
     if(!pays.some(m=>m.active)){e.textContent='Kite omwen yon mwayen peman aktif.';return}
-    try{await act('settings',{maxInv:Math.round(+$('sMax').value),waitDays:Math.round(+$('sWait').value),wa:$('sWa').value.trim(),pays,smsOn:$('sSms').checked,smsTrusted:$('sTrust').value.trim()},$('sGo'));toast('Paramèt yo anrejistre.');loadAdmin()}catch(x){e.textContent=x.message}
+    try{await act('settings',{maxInv:Math.round(+$('sMax').value),waitDays:Math.round(+$('sWait').value),wa:$('sWa').value.trim(),pays,smsOn:$('sSms').checked,smsTrusted:$('sTrust').value.trim(),otosolOn:$('sOto').checked,otosolKey:$('sOtoKey').value.trim()},$('sGo'));toast('Paramèt yo anrejistre.');loadAdmin()}catch(x){e.textContent=x.message}
   };
   $('sSms').onchange=()=>$('sGo').click();
   $('bExp').onclick=async()=>{try{const d=await act('export',null,$('bExp'));const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const l=document.createElement('a');l.href=URL.createObjectURL(b);l.download='lepaon-done-'+new Date().toISOString().slice(0,10)+'.json';l.click()}catch(e){toast(e.message,true)}};
